@@ -30,7 +30,7 @@ No se deben crear APIs, pantallas, entidades o integraciones que no estén respa
 - El MVP contempla autenticación, autorización por rol, prestadores, inventario, préstamos, devoluciones e incidencias.
 - Los actores son Usuario, Administrador y Prestador.
 - La arquitectura de referencia contiene aplicación web, API backend y PostgreSQL.
-- Las tecnologías de referencia son React/Vite, Java/Spring Boot y PostgreSQL. Actualmente ninguna aplicación está inicializada.
+- Las tecnologías de referencia son React/Vite, Java/Spring Boot y PostgreSQL. `apps/frontend/` está inicializado con React, Vite y TypeScript; `apps/backend/` todavía no contiene una aplicación.
 - No deben agregarse ERP, mapas, geolocalización, notificaciones externas, pagos, reservas independientes ni analítica avanzada salvo que una especificación cambie explícitamente el alcance.
 
 ## Reglas técnicas generales
@@ -46,7 +46,7 @@ No se deben crear APIs, pantallas, entidades o integraciones que no estén respa
 ## Estructura del monorepo
 
 - `apps/backend/`: futura aplicación backend; todavía no contiene una aplicación inicializada.
-- `apps/frontend/`: futura aplicación frontend; todavía no contiene una aplicación inicializada.
+- `apps/frontend/`: aplicación React/Vite con TypeScript; su alcance inicial está especificado en `docs/specs/FE-01-frontend-mvp.md`.
 - `docs/agent-context/`: contexto operativo para agentes.
 - `docs/source/`: documentos originales aportados por el proyecto.
 - `docs/specs/`: especificaciones SDD de funcionalidades futuras.

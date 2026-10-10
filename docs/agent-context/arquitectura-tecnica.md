@@ -16,6 +16,15 @@ El modelo C4 define tres contenedores:
 
 La aplicación web se comunica con la API mediante HTTP/JSON sobre HTTPS. La web nunca accede directamente a PostgreSQL; el backend es la autoridad para autorización y reglas de negocio.
 
+## Estado de inicialización
+
+`apps/frontend/` está inicializado con React, Vite y TypeScript. El alcance de
+interfaz implementado inicialmente está descrito en
+`docs/specs/FE-01-frontend-mvp.md`. El cliente HTTP centraliza la URL base y los
+errores; mientras no exista contrato backend, las pantallas presentan estados
+vacíos y no confirman operaciones. `apps/backend/` y PostgreSQL todavía no están
+implementados en este repositorio.
+
 ## Componentes de referencia
 
 ### Frontend
