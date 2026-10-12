@@ -2,7 +2,16 @@
 
 Estas reglas aplican al trabajo dentro de `apps/frontend/` y complementan el `AGENTS.md` de la raíz.
 
-Cuando esta carpeta deje de ser una estructura vacía y se inicialice la aplicación frontend, actualizar inmediatamente las referencias de estado en el `AGENTS.md` raíz y en `docs/agent-context/arquitectura-tecnica.md`. Mantener también sincronizados aquí los comandos, herramientas y convenciones que realmente existan.
+La aplicación frontend está inicializada con React, Vite y TypeScript. El alcance funcional inicial está definido en `docs/specs/FE-01-frontend-mvp.md`. Mantener sincronizadas aquí las herramientas y convenciones que realmente existan.
+
+## Comandos disponibles
+
+- `npm run dev`: servidor local de desarrollo.
+- `npm run build`: verificación de tipos y compilación de producción.
+- `npm run preview`: vista previa de la compilación.
+- `npm test`: pruebas de componentes con Vitest y Testing Library.
+
+Configurar `VITE_API_BASE_URL` para apuntar a la API. Si no está configurada, la interfaz debe mostrar el estado correspondiente sin inventar datos ni confirmar operaciones.
 
 ## Arquitectura
 
