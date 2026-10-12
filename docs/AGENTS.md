@@ -3,6 +3,7 @@
 ## Organización
 
 - `source/` contiene los documentos originales del proyecto y debe conservar su contenido.
+- `modelo-c4/` contiene la estructura organizada del entregable del modelo C4, con su documento, diagramas exportados e imágenes de apoyo.
 - `agent-context/` contiene síntesis operativas para orientar a los agentes.
 - `specs/` contiene especificaciones SDD de funcionalidades. Una especificación no debe confundirse con documentación de contexto.
 
@@ -17,4 +18,3 @@ Después de cada cambio relevante, el agente debe buscar afirmaciones temporales
 ## Especificaciones SDD
 
 Cada especificación debe dejar claros el objetivo, alcance, actores, comportamiento esperado, reglas, contratos, errores, criterios de aceptación y pruebas. Las funcionalidades deben implementarse únicamente contra una especificación identificable.
-
