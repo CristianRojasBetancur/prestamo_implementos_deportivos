@@ -5,7 +5,7 @@
 | Identificador | `BE-01` |
 | Estado | Propuesta para revisión del equipo |
 | Contenedor | API backend (C4 Nivel 2) |
-| Stack de referencia | Java 17+ (se recomienda 21 LTS), Spring Boot 3.x, Spring Security, Spring Data JPA, Flyway, PostgreSQL |
+| Stack de referencia | Java 21 LTS, Spring Boot 4.1.x (la línea 3.5 perdió soporte OSS el 30-jun-2026), Spring Security, Spring Data JPA, Flyway, PostgreSQL 17 |
 | Fuentes | `docs/source/contexto_proyecto_sistemas_de_informacion.pdf` (Entregable 1), `docs/source/modelo_c4.md`, `docs/source/seleccion_de_patrones_de_diseno.md`, Entregable 3 (máquina de estados del préstamo) |
 | Consumidor | Aplicación web descrita en `FE-01-frontend-mvp.md` |
 
@@ -1203,12 +1203,8 @@ criterio de §16 que verifica.
 
 ## 18. Impacto arquitectónico
 
-- Inicializar `apps/backend/` (Spring Boot, Maven o Gradle, Flyway y
-  configuración por variables de entorno) le corresponde a la primera
-  implementación autorizada por esta especificación. Cuando eso ocurra, se deben
-  actualizar `AGENTS.md`, `apps/backend/AGENTS.md` y
-  `docs/agent-context/arquitectura-tecnica.md`, como exigen las reglas de
-  mantenimiento de contexto.
+- `apps/backend/` está inicializado con Spring Boot 4.1, Maven, Flyway y
+  configuración por variables de entorno (ver `apps/backend/README.md`).
 - Desviaciones respecto al C4 Nivel 4: `D-04`, `D-06`, `D-10` y `D-11`. El
   documento C4 no se modifica porque es un entregable. Las desviaciones quedan
   registradas aquí.

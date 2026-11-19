@@ -21,9 +21,16 @@ La aplicación web se comunica con la API mediante HTTP/JSON sobre HTTPS. La web
 `apps/frontend/` está inicializado con React, Vite y TypeScript. El alcance de
 interfaz implementado inicialmente está descrito en
 `docs/specs/FE-01-frontend-mvp.md`. El cliente HTTP centraliza la URL base y los
-errores; mientras no exista contrato backend, las pantallas presentan estados
-vacíos y no confirman operaciones. `apps/backend/` y PostgreSQL todavía no están
-implementados en este repositorio.
+errores; mientras no consuma la API, las pantallas presentan estados vacíos y
+no confirman operaciones.
+
+`apps/backend/` está inicializado como aplicación Spring Boot 4.1 (Java 21,
+Maven) según `docs/specs/BE-01-api-backend-mvp.md`, que es el contrato de la
+API. Contiene la base técnica: perfiles `local`, `test` y `prod`; migraciones
+Flyway; PostgreSQL 17 local con Docker Compose y Testcontainers en pruebas;
+seguridad stateless deny-by-default; CORS por variable de entorno; y
+`/actuator/health` público. Todavía no hay casos de uso de negocio ni tablas de
+dominio. Los comandos están en `apps/backend/README.md`.
 
 ## Componentes de referencia
 

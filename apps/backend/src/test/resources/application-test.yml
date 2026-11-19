@@ -1,0 +1,5 @@
+# Perfil de pruebas. La conexión a PostgreSQL la aporta Testcontainers mediante
+# @ServiceConnection (ver ContenedoresPrueba); no se definen credenciales aquí.
+app:
+  cors:
+    origenes-permitidos: http://localhost:5173
