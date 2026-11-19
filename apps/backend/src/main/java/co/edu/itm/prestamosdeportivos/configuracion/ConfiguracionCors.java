@@ -10,8 +10,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Política CORS de la API (BE-01 §4.10): solo los orígenes configurados, los
- * métodos del contrato y las cabeceras {@code Authorization} y
- * {@code Content-Type}. Spring Security la aplica mediante {@code cors()}.
+ * métodos del contrato y las cabeceras {@code Authorization},
+ * {@code Content-Type} y {@code X-Correlation-Id}, que también se expone. Spring Security la aplica mediante {@code cors()}.
  */
 @Configuration(proxyBeanMethods = false)
 public class ConfiguracionCors {
@@ -21,8 +21,8 @@ public class ConfiguracionCors {
         CorsConfiguration configuracion = new CorsConfiguration();
         configuracion.setAllowedOrigins(propiedades.origenesPermitidos());
         configuracion.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "OPTIONS"));
-        configuracion.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuracion.setExposedHeaders(List.of("Location"));
+        configuracion.setAllowedHeaders(List.of("Authorization", "Content-Type", FiltroCorrelacion.CABECERA));
+        configuracion.setExposedHeaders(List.of("Location", FiltroCorrelacion.CABECERA));
         configuracion.setAllowCredentials(false);
         configuracion.setMaxAge(3600L);
 

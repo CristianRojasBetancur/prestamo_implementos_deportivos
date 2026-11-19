@@ -7,6 +7,7 @@ API REST del MVP, gobernada por la especificación
 |---|---|
 | Java | 21 (LTS) |
 | Spring Boot | 4.1.2 (Spring MVC, Validation, Data JPA, Security, Actuator) |
+| Documentación API | springdoc-openapi 3.1.1 (OpenAPI 3.1, Swagger UI) |
 | Migraciones | Flyway |
 | Base de datos | PostgreSQL 17 (Docker Compose en local, Testcontainers en pruebas) |
 | Build | Maven 3.9+ |
@@ -100,6 +101,7 @@ docker compose down -v     # elimina también el volumen (base vacía la próxim
 | `DB_USUARIO`, `DB_CONTRASENA` | prod | Sí | Credenciales de la base. |
 | `APP_CORS_ORIGENES` | local, prod | Sí en prod | Orígenes exactos del frontend separados por coma. No admite `*`. Por defecto en local: `http://localhost:5173`. |
 | `APP_ZONA_HORARIA` | todos | No | Zona institucional. Por defecto `America/Bogota`. |
+| `APP_OPENAPI_HABILITADO` | prod | No | `true` para publicar OpenAPI/Swagger en producción. Por defecto `false`. |
 | `SERVER_PORT` | todos | No | Por defecto `8080`. |
 | `SPRING_PROFILES_ACTIVE` | — | No | `local` si no se define. |
 
@@ -116,8 +118,11 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 
 | Paquete | Contiene |
 |---|---|
-| `web` | Controladores REST (`*Controlador`) y DTO de solicitud y respuesta. |
-| `web.error` | Manejador global de errores (`@RestControllerAdvice`, Problem Details). |
+| `web` | Controladores REST (`*Controlador`). |
+| `web.dto` | DTO de solicitud y respuesta de cada caso de uso de BE-01. |
+| `web.comun` | Paginación (`ParametrosPagina`, `PaginaRespuesta`) y conversión de fechas. |
+| `web.error` | Manejador global de errores (`ProblemaRespuesta`, `application/problem+json`). |
+| `dominio.error` | Catálogo `CodigoError` y `ExcepcionDominio` (sin dependencias HTTP). |
 | `aplicacion` | Servicios de aplicación (`*Servicio`), interfaces de casos de uso y transacciones. |
 | `dominio` | Entidades JPA, enumeraciones de estado, invariantes y políticas (State, Chain, Strategy). |
 | `persistencia` | Repositorios Spring Data (`*Repositorio`) con las consultas mínimas. |
@@ -129,9 +134,13 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 |---|---|---|
 | `GET /actuator/health` | Público | Estado de la aplicación y de la base de datos. |
 | `GET /actuator/health/liveness`, `/readiness` | Público | Sondas para el despliegue. |
+| `GET /v3/api-docs` | Público (local/pruebas) | Documento OpenAPI 3.1. |
+| `GET /swagger-ui.html` | Público (local/pruebas) | Swagger UI para explorar la API. |
 
 Cualquier otra ruta responde `401` mientras no se implemente la autenticación
-(BE-01 §5).
+(BE-01 §5). Todas las respuestas de error usan `application/problem+json` con un
+`codigo` estable e incluyen la cabecera `X-Correlation-Id`; el formato está en
+[`docs/specs/BE-01-A-contratos-y-errores.md`](../../docs/specs/BE-01-A-contratos-y-errores.md).
 
 ## Migraciones
 

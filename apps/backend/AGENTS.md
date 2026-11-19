@@ -23,6 +23,12 @@ Ejecutar desde `apps/backend/` (detalle en `README.md`):
 - Las entidades JPA viven en `dominio` y los repositorios en `persistencia`. Los enums se persisten como `varchar` con el nombre de la constante y un `CHECK`; renombrar una constante exige migración.
 - La seguridad es stateless y deny-by-default; solo son públicas las rutas que BE-01 declara (salud, login, disponibilidad y categorías).
 - La fecha y hora actuales se obtienen siempre del `Clock` inyectado, nunca de `LocalDateTime.now()` directo.
+- Contratos y errores (obligatorio para todo endpoint): `docs/specs/BE-01-A-contratos-y-errores.md`.
+  - Reutilizar los DTO de `web.dto` y los auxiliares de `web.comun` (`ParametrosPagina`, `PaginaRespuesta`, `ConversorFechas`); nunca devolver entidades ni `Page`.
+  - Los errores de negocio se lanzan como `ExcepcionDominio(CodigoError, detalle)`; no se capturan excepciones de infraestructura en los servicios: `ManejadorGlobalErrores` las traduce.
+  - No crear códigos de error ad hoc: agregarlos a `CodigoError` y al anexo BE-01-A.
+  - Autorización por rol con `@PreAuthorize` en los controladores; los endpoints públicos se anotan con `@SecurityRequirements()` para OpenAPI.
+- OpenAPI en `/v3/api-docs` y Swagger UI en `/swagger-ui.html` (local y pruebas; deshabilitados en producción salvo `APP_OPENAPI_HABILITADO=true`).
 
 ## Arquitectura
 

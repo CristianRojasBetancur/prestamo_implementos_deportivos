@@ -11,6 +11,17 @@ app:
     # Lista separada por comas de orígenes exactos (sin comodines).
     origenes-permitidos: ${APP_CORS_ORIGENES}
 
+springdoc:
+  # OpenAPI y Swagger UI deshabilitados por defecto en producción.
+  api-docs:
+    enabled: ${APP_OPENAPI_HABILITADO:false}
+  swagger-ui:
+    enabled: ${APP_OPENAPI_HABILITADO:false}
+
 logging:
   level:
     root: INFO
+  structured:
+    format:
+      # Logs JSON (Elastic Common Schema); incluyen el MDC correlacionId.
+      console: ecs

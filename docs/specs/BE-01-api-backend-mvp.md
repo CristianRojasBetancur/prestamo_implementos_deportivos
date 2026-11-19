@@ -174,6 +174,9 @@ Un valor fuera de rango o un campo de orden no permitido produce `400`.
 
 ### 4.8 Formato de errores
 
+> Detalle vigente del formato, catálogo completo de códigos, correlación y
+> OpenAPI: [`BE-01-A-contratos-y-errores.md`](BE-01-A-contratos-y-errores.md).
+
 Todos los errores usan la estructura de RFC 9457 (Problem Details), extendida
 con `codigo` y `errores`:
 

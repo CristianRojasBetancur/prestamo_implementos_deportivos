@@ -3,8 +3,9 @@ package co.edu.itm.prestamosdeportivos.configuracion;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
+import co.edu.itm.prestamosdeportivos.web.error.DelegacionErroresSeguridad;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -12,7 +13,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 /**
  * Seguridad base de la API (BE-01 §3.2 y §5).
@@ -22,7 +22,11 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
  *   <li>Sesión stateless, sin formulario de login ni HTTP Basic y sin CSRF
  *       (el token viajará en la cabecera {@code Authorization}).</li>
  *   <li>Las rutas públicas son las que BE-01 declara: salud, login,
- *       disponibilidad y categorías.</li>
+ *       disponibilidad y categorías, además de la documentación OpenAPI
+ *       (deshabilitada por defecto en producción).</li>
+ *   <li>Los 401/403 usan el formato de error común (anexo A de BE-01).</li>
+ *   <li>{@code @EnableMethodSecurity} habilita {@code @PreAuthorize} por rol en
+ *       los controladores.</li>
  * </ul>
  *
  * La autenticación JWT se incorpora en el issue de autenticación; mientras
@@ -30,10 +34,12 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
+@EnableMethodSecurity
 public class ConfiguracionSeguridad {
 
     @Bean
-    SecurityFilterChain cadenaFiltrosSeguridad(HttpSecurity http) throws Exception {
+    SecurityFilterChain cadenaFiltrosSeguridad(HttpSecurity http, DelegacionErroresSeguridad erroresSeguridad)
+            throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -42,12 +48,15 @@ public class ConfiguracionSeguridad {
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(excepciones -> excepciones
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                        .authenticationEntryPoint(erroresSeguridad)
+                        .accessDeniedHandler(erroresSeguridad))
                 .authorizeHttpRequests(autorizacion -> autorizacion
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/disponibilidad", "/api/v1/categorias").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html",
+                                "/swagger-ui/**").permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }

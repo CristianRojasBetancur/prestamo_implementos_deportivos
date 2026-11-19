@@ -41,11 +41,24 @@ class SeguridadBaseTest {
     }
 
     @Test
-    @DisplayName("Una ruta no declarada pública responde 401 sin token")
+    @DisplayName("Una ruta no declarada pública responde 401 sin token, con el formato de error común")
     void rutaProtegidaSinToken() throws Exception {
         HttpResponse<String> respuesta = enviar(HttpRequest.newBuilder(uri("/api/v1/prestamos")).GET().build());
 
         assertThat(respuesta.statusCode()).isEqualTo(401);
+        assertThat(respuesta.headers().firstValue("Content-Type")).hasValueSatisfying(
+                tipo -> assertThat(tipo).startsWith("application/problem+json"));
+        assertThat(respuesta.body()).contains("\"codigo\":\"NO_AUTENTICADO\"");
+        assertThat(respuesta.headers().firstValue("X-Correlation-Id")).isPresent();
+    }
+
+    @Test
+    @DisplayName("El documento OpenAPI es público e incluye seguridad Bearer y el formato de error")
+    void documentoOpenApi() throws Exception {
+        HttpResponse<String> respuesta = enviar(HttpRequest.newBuilder(uri("/v3/api-docs")).GET().build());
+
+        assertThat(respuesta.statusCode()).isEqualTo(200);
+        assertThat(respuesta.body()).contains("bearerAuth", "ProblemaRespuesta", "correlacionId");
     }
 
     @Test
