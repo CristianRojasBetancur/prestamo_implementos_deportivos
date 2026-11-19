@@ -12,7 +12,8 @@ API REST del MVP, gobernada por la especificación
 | Base de datos | PostgreSQL 17 (Docker Compose en local, Testcontainers en pruebas) |
 | Build | Maven 3.9+ |
 
-> Estado: API inicializada con autenticación, gestión de categorías e inventario, consulta de disponibilidad, elegibilidad de usuarios y registro transaccional de préstamos. Devoluciones e incidencias siguen pendientes. Modelo de datos: [`docs/agent-context/modelo-datos.md`](../../docs/agent-context/modelo-datos.md).
+> Estado: base técnica inicializada. BE-02 implementa gestión de prestadores;
+> la autenticación JWT y los otros casos de uso del MVP siguen pendientes.
 
 ## Requisitos
 
@@ -70,9 +71,8 @@ mvn test
 
 Las pruebas usan el perfil `test` y levantan un PostgreSQL efímero con
 Testcontainers (requiere Docker en ejecución, no requiere el `compose.yaml`).
-Cubren el arranque del contexto, la aplicación de migraciones Flyway, el
-healthcheck, la política deny-by-default (`401`), CORS, los constraints e
-índices del esquema y las consultas de los repositorios.
+Cubren el arranque, migraciones, healthcheck, CORS, seguridad y gestión de
+prestadores (controller, servicio, repositorio y autorización).
 
 ## Detener
 
@@ -136,19 +136,15 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 |---|---|---|
 | `GET /actuator/health` | Público | Estado de la aplicación y de la base de datos. |
 | `GET /actuator/health/liveness`, `/readiness` | Público | Sondas para el despliegue. |
-| `POST /api/v1/auth/login` | Público | Inicio de sesión; devuelve un JWT Bearer. |
-| `GET /api/v1/auth/me` | ADMIN, PRESTADOR | Usuario autenticado y su rol. |
-| `POST /api/v1/auth/logout` | ADMIN, PRESTADOR | Revoca todas las sesiones del usuario. |
-| `GET /api/v1/availability`, `/api/v1/disponibilidad` | Público | Consulta agregada y paginada; no expone códigos ni UUID de unidades. |
-| `GET /api/v1/usuarios/{id}/situacion`, `/api/v1/users/{userId}/loan-situation` | PRESTADOR | Consulta informativa de elegibilidad; valida 4 unidades, sanciones, vencidos y estado. |
-| `POST /api/v1/prestamos`, `/api/v1/loans` | PRESTADOR | Registra préstamo y asigna unidades atómicamente; fechas calculadas por el servidor. |
-| `GET /v3/api-docs` | Público (local/pruebas) | Documento OpenAPI 3.1. |
-| `GET /swagger-ui.html` | Público (local/pruebas) | Swagger UI para explorar la API. |
+| `POST /api/v1/providers` | `ADMIN` | Registra un prestador con contraseña inicial. |
+| `GET /api/v1/providers` | `ADMIN` | Lista prestadores con filtros y paginación. |
+| `GET /api/v1/providers/{id}` | `ADMIN` | Consulta un prestador, incluso inactivo. |
+| `PATCH /api/v1/providers/{id}` | `ADMIN` | Actualiza nombres, apellidos, identificación o correo. |
+| `PATCH /api/v1/providers/{id}/estado` | `ADMIN` | Activa o desactiva conservando el historial. |
 
-Las demás rutas de `/api/v1` exigen un token y el rol de la matriz de BE-01
-§3.2: sin token responden `401` y con un rol no autorizado, `403`. Todas las respuestas de error usan `application/problem+json` con un
-`codigo` estable e incluyen la cabecera `X-Correlation-Id`; el formato está en
-[`docs/specs/BE-01-A-contratos-y-errores.md`](../../docs/specs/BE-01-A-contratos-y-errores.md).
+Las rutas de prestadores requieren rol `ADMIN`; reciben `401` sin autenticación
+y `403` con otro rol. La autenticación JWT aún no está implementada, por lo que
+estas rutas están disponibles tras integrar ese caso de uso definido en BE-01.
 
 ## Migraciones
 

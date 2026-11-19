@@ -1,140 +1,98 @@
 package co.edu.itm.prestamosdeportivos.dominio;
 
 import java.time.Instant;
-import java.util.Objects;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/**
- * Única entidad de acceso del sistema (BE-01 D-04, D-05). Un prestador o un
- * administrador es un {@code Usuario} con el rol correspondiente; un
- * solicitante es un {@code Usuario} con rol {@link Rol#USER}, sin contraseña.
- */
 @Entity
 @Table(name = "usuario")
-public class Usuario extends EntidadBase {
+public class Usuario {
 
-    @Column(name = "identificacion", nullable = false, length = 30)
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false, length = 40, unique = true)
     private String identificacion;
 
-    @Column(name = "nombres", nullable = false, length = 100)
+    @Column(nullable = false, length = 120)
     private String nombres;
 
-    @Column(name = "apellidos", nullable = false, length = 100)
+    @Column(nullable = false, length = 120)
     private String apellidos;
 
-    @Column(name = "correo", length = 254)
+    @Column(length = 254)
     private String correo;
 
     @Column(name = "contrasena_hash", length = 100)
     private String contrasenaHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "rol", nullable = false, length = 20)
-    private Rol rol;
+    @Column(nullable = false, length = 20)
+    private RolUsuario rol;
 
-    @Column(name = "activo", nullable = false)
-    private boolean activo = true;
-
-    /** Fin de la suspensión vigente (caché de las sanciones; ver modelo-datos.md). */
-    @Column(name = "suspendido_hasta")
-    private Instant suspendidoHasta;
+    @Column(nullable = false)
+    private boolean activo;
 
     @Column(name = "version_credenciales", nullable = false)
-    private int versionCredenciales;
+    private long versionCredenciales;
 
-    protected Usuario() {
-        // Requerido por JPA.
-    }
+    @Column(name = "creado_en", nullable = false)
+    private Instant creadoEn;
 
-    private Usuario(String identificacion, String nombres, String apellidos, String correo,
-            String contrasenaHash, Rol rol) {
-        this.identificacion = Objects.requireNonNull(identificacion, "identificacion");
-        this.nombres = Objects.requireNonNull(nombres, "nombres");
-        this.apellidos = Objects.requireNonNull(apellidos, "apellidos");
+    @Column(name = "actualizado_en", nullable = false)
+    private Instant actualizadoEn;
+
+    protected Usuario() { }
+
+    public Usuario(String identificacion, String nombres, String apellidos, String correo,
+            String contrasenaHash, RolUsuario rol, boolean activo, Instant ahora) {
+        this.identificacion = identificacion;
+        this.nombres = nombres;
+        this.apellidos = apellidos;
         this.correo = correo;
         this.contrasenaHash = contrasenaHash;
-        this.rol = Objects.requireNonNull(rol, "rol");
+        this.rol = rol;
+        this.activo = activo;
+        this.versionCredenciales = 0;
+        this.creadoEn = ahora;
+        this.actualizadoEn = ahora;
     }
 
-    /** Solicitante (rol USER): no inicia sesión y no tiene contraseña. */
-    public static Usuario solicitante(String identificacion, String nombres, String apellidos) {
-        return new Usuario(identificacion, nombres, apellidos, null, null, Rol.USER);
+    public void actualizarPrestador(String nombres, String apellidos, String identificacion, String correo,
+            Instant ahora) {
+        this.nombres = nombres;
+        this.apellidos = apellidos;
+        this.identificacion = identificacion;
+        this.correo = correo;
+        this.actualizadoEn = ahora;
     }
 
-    /** Usuario con acceso (PRESTADOR o ADMIN): correo y hash de contraseña obligatorios. */
-    public static Usuario conAcceso(String identificacion, String nombres, String apellidos, String correo,
-            String contrasenaHash, Rol rol) {
-        if (rol == Rol.USER) {
-            throw new IllegalArgumentException("Un usuario con rol USER no tiene acceso al sistema.");
+    public void cambiarEstado(boolean activo, Instant ahora) {
+        if (this.activo && !activo) {
+            this.versionCredenciales++;
         }
-        return new Usuario(identificacion, nombres, apellidos,
-                Objects.requireNonNull(correo, "correo"),
-                Objects.requireNonNull(contrasenaHash, "contrasenaHash"), rol);
+        this.activo = activo;
+        this.actualizadoEn = ahora;
     }
 
-    /** Solo PRESTADOR y ADMIN activos inician sesión; USER no tiene acceso en el MVP (BE-01 §5). */
-    public boolean puedeIniciarSesion() {
-        return activo && rol != Rol.USER && contrasenaHash != null;
-    }
-
-    /**
-     * Invalida todos los tokens emitidos hasta ahora: el claim {@code ver} de
-     * esos tokens deja de coincidir con {@link #getVersionCredenciales()}.
-     */
-    public void revocarSesiones() {
-        versionCredenciales++;
-    }
-
-    /** Desactiva la cuenta y revoca sus sesiones (CU-06). El historial se conserva. */
-    public void desactivar() {
-        if (activo) {
-            activo = false;
-            revocarSesiones();
-        }
-    }
-
-    public void activar() {
-        activo = true;
-    }
-
-    public String getIdentificacion() {
-        return identificacion;
-    }
-
-    public String getNombres() {
-        return nombres;
-    }
-
-    public String getApellidos() {
-        return apellidos;
-    }
-
-    public String getCorreo() {
-        return correo;
-    }
-
-    public String getContrasenaHash() {
-        return contrasenaHash;
-    }
-
-    public Rol getRol() {
-        return rol;
-    }
-
-    public boolean isActivo() {
-        return activo;
-    }
-
-    public Instant getSuspendidoHasta() {
-        return suspendidoHasta;
-    }
-
-    public int getVersionCredenciales() {
-        return versionCredenciales;
-    }
+    public UUID getId() { return id; }
+    public String getIdentificacion() { return identificacion; }
+    public String getNombres() { return nombres; }
+    public String getApellidos() { return apellidos; }
+    public String getCorreo() { return correo; }
+    public String getContrasenaHash() { return contrasenaHash; }
+    public RolUsuario getRol() { return rol; }
+    public boolean isActivo() { return activo; }
+    public long getVersionCredenciales() { return versionCredenciales; }
+    public Instant getCreadoEn() { return creadoEn; }
+    public Instant getActualizadoEn() { return actualizadoEn; }
 }

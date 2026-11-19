@@ -2,7 +2,7 @@
 
 Estas reglas aplican al trabajo dentro de `apps/backend/` y complementan el `AGENTS.md` de la raíz.
 
-La aplicación está inicializada con Java 21, Spring Boot 4.1, Maven, Flyway y PostgreSQL. La especificación funcional base es `docs/specs/BE-01-api-backend-mvp.md`; BE-07 implementa categorías e inventario, BE-08 disponibilidad, BE-09 elegibilidad y BE-10 el registro transaccional de préstamos. Devoluciones e incidencias siguen pendientes. Mantener sincronizados aquí, en el `AGENTS.md` raíz y en `docs/agent-context/arquitectura-tecnica.md` los comandos, herramientas y convenciones que realmente existan.
+La aplicación está inicializada con Java 21, Spring Boot 4.1, Maven, Flyway y PostgreSQL. La especificación base es `docs/specs/BE-01-api-backend-mvp.md`; las especificaciones de módulo concretan sus casos de uso. BE-02 implementa gestión de prestadores. La autenticación JWT y otros casos de uso siguen pendientes. Mantener sincronizados aquí, en el `AGENTS.md` raíz y en `docs/agent-context/arquitectura-tecnica.md` los comandos, herramientas y convenciones que realmente existan.
 
 ## Comandos disponibles
 

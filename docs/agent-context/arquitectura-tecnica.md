@@ -29,22 +29,9 @@ Maven) según `docs/specs/BE-01-api-backend-mvp.md`, que es el contrato de la
 API. Contiene la base técnica: perfiles `local`, `test` y `prod`; migraciones
 Flyway; PostgreSQL 17 local con Docker Compose y Testcontainers en pruebas;
 seguridad stateless deny-by-default; CORS por variable de entorno; y
-`/actuator/health` público. El esquema inicial del MVP (9 tablas, migración V2), sus
-entidades JPA y repositorios están creados y documentados en
-`docs/agent-context/modelo-datos.md`. La capa transversal de contratos está
-implementada: DTO de todos los casos de uso, validación, formato de error
-`application/problem+json` con catálogo de códigos, correlación
-`X-Correlation-Id`, logs con MDC y OpenAPI (`docs/specs/BE-01-A-contratos-y-errores.md`).
-La autenticación JWT (login, sesión actual y cierre de sesión con revocación) y la
-autorización por rol están implementadas (BE-01 §5, D-16 y D-17). BE-07 implementa
-la administración de categorías y unidades físicas, con paginación, filtros,
-transiciones de estado auditadas y baja lógica. BE-08 agrega la consulta pública
-agregada y paginada de disponibilidad, sin códigos ni UUID de unidades. Los módulos de préstamos,
-BE-09 implementa la situación/elegibilidad del usuario y BE-10 el registro
-transaccional de préstamos con bloqueo pesimista del solicitante y las unidades,
-restricción de asignación activa y auditoría del cambio de inventario. Devoluciones
-e incidencias aún no tienen sus casos de uso REST implementados en esta rama. Los
-comandos están en `apps/backend/README.md`.
+`/actuator/health` público. BE-02 agrega persistencia de usuarios y endpoints
+administrativos de prestadores. La autenticación JWT y el resto de los casos de
+uso aún no están implementados. Los comandos están en `apps/backend/README.md`.
 
 ## Componentes de referencia
 

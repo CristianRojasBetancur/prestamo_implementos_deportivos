@@ -9,11 +9,11 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -42,8 +42,8 @@ public class ConfiguracionSeguridad {
     static final String PRESTADOR = "PRESTADOR";
 
     @Bean
-    SecurityFilterChain cadenaFiltrosSeguridad(HttpSecurity http, DelegacionErroresSeguridad erroresSeguridad,
-            JwtDecoder decodificadorJwt, ConversorJwtAUsuario conversorJwt) throws Exception {
+    SecurityFilterChain cadenaFiltrosSeguridad(HttpSecurity http, ManejadorErroresSeguridad manejadorErrores)
+            throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -56,8 +56,8 @@ public class ConfiguracionSeguridad {
                         .accessDeniedHandler(erroresSeguridad)
                         .jwt(jwt -> jwt.decoder(decodificadorJwt).jwtAuthenticationConverter(conversorJwt)))
                 .exceptionHandling(excepciones -> excepciones
-                        .authenticationEntryPoint(erroresSeguridad)
-                        .accessDeniedHandler(erroresSeguridad))
+                        .authenticationEntryPoint(manejadorErrores)
+                        .accessDeniedHandler(manejadorErrores))
                 .authorizeHttpRequests(autorizacion -> autorizacion
                         // Público: salud, errores, documentación, login y catálogo (BE-01 §3.2, D-03).
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
@@ -91,15 +91,9 @@ public class ConfiguracionSeguridad {
         return http.build();
     }
 
-    /**
-     * La API no autentica con usuario y contraseña de Spring Security (el login
-     * propio emite un JWT). Este bean evita que Spring Boot genere un usuario en
-     * memoria con contraseña aleatoria.
-     */
     @Bean
-    UserDetailsService servicioUsuariosSinCuentas() {
-        return nombreUsuario -> {
-            throw new UsernameNotFoundException("La autenticación se realiza con JWT.");
-        };
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(10);
     }
+
 }
