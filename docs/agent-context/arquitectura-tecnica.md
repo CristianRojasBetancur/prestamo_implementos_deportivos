@@ -29,8 +29,10 @@ Maven) según `docs/specs/BE-01-api-backend-mvp.md`, que es el contrato de la
 API. Contiene la base técnica: perfiles `local`, `test` y `prod`; migraciones
 Flyway; PostgreSQL 17 local con Docker Compose y Testcontainers en pruebas;
 seguridad stateless deny-by-default; CORS por variable de entorno; y
-`/actuator/health` público. Todavía no hay casos de uso de negocio ni tablas de
-dominio. Los comandos están en `apps/backend/README.md`.
+`/actuator/health` público. El esquema del MVP (9 tablas, migración V2), sus
+entidades JPA y repositorios están creados y documentados en
+`docs/agent-context/modelo-datos.md`. Todavía no hay casos de uso de negocio ni
+endpoints de dominio. Los comandos están en `apps/backend/README.md`.
 
 ## Componentes de referencia
 

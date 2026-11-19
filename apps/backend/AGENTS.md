@@ -18,7 +18,9 @@ Ejecutar desde `apps/backend/` (detalle en `README.md`):
 - Paquete raíz `co.edu.itm.prestamosdeportivos`: `web` (controladores y DTO), `web.error` (manejo global de errores), `aplicacion` (servicios y casos de uso), `dominio` (entidades, estados y políticas), `persistencia` (repositorios) y `configuracion` (seguridad, CORS, reloj, propiedades).
 - Perfiles: `local` (por defecto, lee `.env`), `test` (Testcontainers) y `prod` (todas las variables obligatorias, sin valores por defecto).
 - Ningún secreto se versiona: credenciales y orígenes CORS provienen de variables de entorno. `.env` está en `.gitignore`.
-- El esquema se gestiona solo con migraciones Flyway en `src/main/resources/db/migration` (`V<n>__descripcion.sql`); Hibernate usa `ddl-auto: validate`. No editar migraciones ya aplicadas.
+- El esquema se gestiona solo con migraciones Flyway en `src/main/resources/db/migration` (`V<n>__descripcion.sql`); Hibernate usa `ddl-auto: validate`. No editar migraciones ya aplicadas (estrategia forward-only).
+- El modelo de datos (tablas, constraints, índices, mapeo de enumeraciones y decisiones DM-xx) está en `docs/agent-context/modelo-datos.md`; toda migración que lo cambie debe actualizarlo.
+- Las entidades JPA viven en `dominio` y los repositorios en `persistencia`. Los enums se persisten como `varchar` con el nombre de la constante y un `CHECK`; renombrar una constante exige migración.
 - La seguridad es stateless y deny-by-default; solo son públicas las rutas que BE-01 declara (salud, login, disponibilidad y categorías).
 - La fecha y hora actuales se obtienen siempre del `Clock` inyectado, nunca de `LocalDateTime.now()` directo.
 

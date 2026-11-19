@@ -11,8 +11,9 @@ API REST del MVP, gobernada por la especificación
 | Base de datos | PostgreSQL 17 (Docker Compose en local, Testcontainers en pruebas) |
 | Build | Maven 3.9+ |
 
-> Estado: base técnica inicializada. Todavía no hay casos de uso de negocio,
-> endpoints de dominio ni datos de demostración.
+> Estado: base técnica y esquema de persistencia del MVP (V2) inicializados.
+> Todavía no hay casos de uso de negocio, endpoints de dominio ni datos de
+> demostración. Modelo de datos: [`docs/agent-context/modelo-datos.md`](../../docs/agent-context/modelo-datos.md).
 
 ## Requisitos
 
@@ -71,7 +72,8 @@ mvn test
 Las pruebas usan el perfil `test` y levantan un PostgreSQL efímero con
 Testcontainers (requiere Docker en ejecución, no requiere el `compose.yaml`).
 Cubren el arranque del contexto, la aplicación de migraciones Flyway, el
-healthcheck, la política deny-by-default (`401`) y CORS.
+healthcheck, la política deny-by-default (`401`), CORS, los constraints e
+índices del esquema y las consultas de los repositorios.
 
 ## Detener
 
@@ -117,8 +119,8 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 | `web` | Controladores REST (`*Controlador`) y DTO de solicitud y respuesta. |
 | `web.error` | Manejador global de errores (`@RestControllerAdvice`, Problem Details). |
 | `aplicacion` | Servicios de aplicación (`*Servicio`), interfaces de casos de uso y transacciones. |
-| `dominio` | Entidades, enumeraciones de estado, invariantes y políticas (State, Chain, Strategy). |
-| `persistencia` | Repositorios Spring Data (`*Repositorio`). |
+| `dominio` | Entidades JPA, enumeraciones de estado, invariantes y políticas (State, Chain, Strategy). |
+| `persistencia` | Repositorios Spring Data (`*Repositorio`) con las consultas mínimas. |
 | `configuracion` | Seguridad, CORS, reloj (`Clock`) y propiedades tipadas. |
 
 ## Endpoints disponibles
@@ -138,3 +140,7 @@ Cualquier otra ruta responde `401` mientras no se implemente la autenticación
   `V2__crear_tabla_usuario.sql`).
 - Una migración aplicada nunca se edita; cualquier cambio se hace con una
   migración nueva. Hibernate solo valida el esquema (`ddl-auto: validate`).
+- Aplicadas: `V1__linea_base.sql` y `V2__crear_esquema_mvp.sql` (9 tablas del MVP).
+- Reversión: forward-only. En local, `docker compose down -v` recrea la base
+  vacía; en entornos compartidos se usa una migración correctiva. Detalle en
+  `docs/agent-context/modelo-datos.md` §6.
