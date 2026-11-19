@@ -11,8 +11,8 @@ API REST del MVP, gobernada por la especificación
 | Base de datos | PostgreSQL 17 (Docker Compose en local, Testcontainers en pruebas) |
 | Build | Maven 3.9+ |
 
-> Estado: base técnica inicializada. Todavía no hay casos de uso de negocio,
-> endpoints de dominio ni datos de demostración.
+> Estado: base técnica inicializada. BE-02 implementa gestión de prestadores;
+> la autenticación JWT y los otros casos de uso del MVP siguen pendientes.
 
 ## Requisitos
 
@@ -70,8 +70,8 @@ mvn test
 
 Las pruebas usan el perfil `test` y levantan un PostgreSQL efímero con
 Testcontainers (requiere Docker en ejecución, no requiere el `compose.yaml`).
-Cubren el arranque del contexto, la aplicación de migraciones Flyway, el
-healthcheck, la política deny-by-default (`401`) y CORS.
+Cubren el arranque, migraciones, healthcheck, CORS, seguridad y gestión de
+prestadores (controller, servicio, repositorio y autorización).
 
 ## Detener
 
@@ -127,9 +127,15 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 |---|---|---|
 | `GET /actuator/health` | Público | Estado de la aplicación y de la base de datos. |
 | `GET /actuator/health/liveness`, `/readiness` | Público | Sondas para el despliegue. |
+| `POST /api/v1/providers` | `ADMIN` | Registra un prestador con contraseña inicial. |
+| `GET /api/v1/providers` | `ADMIN` | Lista prestadores con filtros y paginación. |
+| `GET /api/v1/providers/{id}` | `ADMIN` | Consulta un prestador, incluso inactivo. |
+| `PATCH /api/v1/providers/{id}` | `ADMIN` | Actualiza nombres, apellidos, identificación o correo. |
+| `PATCH /api/v1/providers/{id}/estado` | `ADMIN` | Activa o desactiva conservando el historial. |
 
-Cualquier otra ruta responde `401` mientras no se implemente la autenticación
-(BE-01 §5).
+Las rutas de prestadores requieren rol `ADMIN`; reciben `401` sin autenticación
+y `403` con otro rol. La autenticación JWT aún no está implementada, por lo que
+estas rutas están disponibles tras integrar ese caso de uso definido en BE-01.
 
 ## Migraciones
 

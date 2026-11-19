@@ -3,16 +3,15 @@ package co.edu.itm.prestamosdeportivos.configuracion;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 /**
  * Seguridad base de la API (BE-01 §3.2 y §5).
@@ -30,10 +29,12 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
+@EnableMethodSecurity
 public class ConfiguracionSeguridad {
 
     @Bean
-    SecurityFilterChain cadenaFiltrosSeguridad(HttpSecurity http) throws Exception {
+    SecurityFilterChain cadenaFiltrosSeguridad(HttpSecurity http, ManejadorErroresSeguridad manejadorErrores)
+            throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -42,7 +43,8 @@ public class ConfiguracionSeguridad {
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(excepciones -> excepciones
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                        .authenticationEntryPoint(manejadorErrores)
+                        .accessDeniedHandler(manejadorErrores))
                 .authorizeHttpRequests(autorizacion -> autorizacion
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers("/error").permitAll()
@@ -52,15 +54,9 @@ public class ConfiguracionSeguridad {
         return http.build();
     }
 
-    /**
-     * Evita que Spring Boot genere un usuario en memoria con contraseña
-     * aleatoria. Se reemplaza por la búsqueda de usuarios en base de datos al
-     * implementar la autenticación (CU-01).
-     */
     @Bean
-    UserDetailsService servicioUsuariosSinCuentas() {
-        return nombreUsuario -> {
-            throw new UsernameNotFoundException("La autenticación aún no está implementada.");
-        };
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(10);
     }
+
 }
