@@ -3,6 +3,8 @@ package co.edu.itm.prestamosdeportivos.dominio;
 import java.time.Instant;
 import java.util.Objects;
 
+import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
+import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -67,5 +69,15 @@ public class DetallePrestamo extends EntidadBase {
 
     public CondicionDevolucion getCondicionRecibida() {
         return condicionRecibida;
+    }
+
+    /** Marca la unidad como devuelta y conserva la condición recibida. */
+    public void registrarDevolucion(Instant fechaResolucion, CondicionDevolucion condicion) {
+        if (estado != EstadoDetallePrestamo.PENDIENTE_DEVOLUCION) {
+            throw new ExcepcionDominio(CodigoError.UNIDAD_YA_RESUELTA);
+        }
+        this.estado = EstadoDetallePrestamo.DEVUELTO;
+        this.fechaResolucion = Objects.requireNonNull(fechaResolucion, "fechaResolucion");
+        this.condicionRecibida = Objects.requireNonNull(condicion, "condicion");
     }
 }

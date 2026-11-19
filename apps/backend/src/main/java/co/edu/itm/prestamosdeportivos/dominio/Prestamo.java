@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
+import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -111,5 +113,25 @@ public class Prestamo extends EntidadBase {
 
     public List<DetallePrestamo> getDetalles() {
         return Collections.unmodifiableList(detalles);
+    }
+
+    /** Evalúa el estado global después de resolver una o más unidades. */
+    public void actualizarEstadoTrasDevolucion(Instant ahora) {
+        Objects.requireNonNull(ahora, "ahora");
+        if (estado == EstadoPrestamo.FINALIZADO) {
+            throw new ExcepcionDominio(CodigoError.PRESTAMO_FINALIZADO);
+        }
+        boolean quedanPendientes = detalles.stream()
+                .anyMatch(detalle -> detalle.getEstado() == EstadoDetallePrestamo.PENDIENTE_DEVOLUCION);
+        if (!quedanPendientes) {
+            estado = EstadoPrestamo.FINALIZADO;
+            fechaFinalizacion = ahora;
+            return;
+        }
+        if (ahora.compareTo(fechaLimiteDevolucion) >= 0 || estado == EstadoPrestamo.VENCIDO) {
+            estado = EstadoPrestamo.VENCIDO;
+        } else if (estado == EstadoPrestamo.VIGENTE) {
+            estado = EstadoPrestamo.DEVOLUCION_PARCIAL;
+        }
     }
 }

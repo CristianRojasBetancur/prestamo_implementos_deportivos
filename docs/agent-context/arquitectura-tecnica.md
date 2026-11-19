@@ -29,9 +29,10 @@ Maven) según `docs/specs/BE-01-api-backend-mvp.md`, que es el contrato de la
 API. Contiene la base técnica: perfiles `local`, `test` y `prod`; migraciones
 Flyway; PostgreSQL 17 local con Docker Compose y Testcontainers en pruebas;
 seguridad stateless deny-by-default; CORS por variable de entorno; y
-`/actuator/health` público. BE-02 agrega persistencia de usuarios y endpoints
-administrativos de prestadores. La autenticación JWT y el resto de los casos de
-uso aún no están implementados. Los comandos están en `apps/backend/README.md`.
+`/actuator/health` público. El backend implementa autenticación JWT, gestión de
+prestadores, elegibilidad, préstamos, consultas y devoluciones BE-12, incluyendo
+la coordinación transaccional con inventario, incidencias y sanciones. Los
+comandos están en `apps/backend/README.md`.
 
 ## Componentes de referencia
 

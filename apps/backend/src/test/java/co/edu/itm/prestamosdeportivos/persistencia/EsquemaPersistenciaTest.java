@@ -63,7 +63,7 @@ class EsquemaPersistenciaTest {
     void migracionesAplicadas() {
         List<String> versiones = jdbc.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank", String.class);
-        assertThat(versiones).containsSubsequence("1", "2");
+        assertThat(versiones).containsSubsequence("1", "2", "7");
 
         List<String> tablas = jdbc.queryForList(
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' "
@@ -222,6 +222,12 @@ class EsquemaPersistenciaTest {
                     .contains("ix_sancion_usuario_vigente");
             assertThat(plan("SELECT id FROM devolucion ORDER BY fecha_devolucion DESC LIMIT 20"))
                     .contains("ix_devolucion_fecha_devolucion");
+            assertThat(plan("SELECT id FROM devolucion WHERE alcance = 'PARCIAL'"))
+                    .contains("ix_devolucion_alcance");
+            assertThat(plan("SELECT id FROM detalle_devolucion WHERE condicion = 'CON_NOVEDAD'"))
+                    .contains("ix_detalle_devolucion_condicion");
+            assertThat(plan("SELECT id FROM detalle_prestamo WHERE implemento_id = '" + IMPLEMENTO + "'"))
+                    .contains("ix_detalle_prestamo_implemento");
         }
 
         private String plan(String consulta) {

@@ -95,6 +95,14 @@ public class Usuario extends EntidadBase {
         versionCredenciales++;
     }
 
+    /** Actualiza la caché de suspensión conservando la fecha más lejana. */
+    public void extenderSuspensionHasta(Instant fechaFin) {
+        Objects.requireNonNull(fechaFin, "fechaFin");
+        if (suspendidoHasta == null || fechaFin.isAfter(suspendidoHasta)) {
+            suspendidoHasta = fechaFin;
+        }
+    }
+
     public String getIdentificacion() { return identificacion; }
     public String getNombres() { return nombres; }
     public String getApellidos() { return apellidos; }
