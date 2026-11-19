@@ -982,6 +982,9 @@ hay retraso o cuando el retraso está justificado.
 
 ## 11. Persistencia e integridad
 
+> Implementación vigente del esquema, mapeo de enumeraciones y decisiones de
+> persistencia (DM-01 a DM-09): `docs/agent-context/modelo-datos.md`.
+
 - Las migraciones se gestionan con Flyway (`src/main/resources/db/migration`).
   El esquema nunca se genera con `ddl-auto`.
 - Restricciones obligatorias:
