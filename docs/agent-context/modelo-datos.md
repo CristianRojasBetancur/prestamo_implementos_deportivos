@@ -78,6 +78,7 @@ Nunca se renombra una constante Java sin esa migración.
 | Unicidad exacta | `uq_usuario_identificacion`, `uq_implemento_codigo_inventario` y los códigos legibles. |
 | Auditoría de estados de unidad | `historial_estado_implemento` referencia la unidad sin cascada y conserva estado anterior/nuevo, evento y motivo. |
 | Consulta pública de disponibilidad | `ix_implemento_catalogo_activo` cubre categoría/nombre/estado de unidades no retiradas; `ix_incidencia_registrada_implemento` acelera la exclusión de incidencias abiertas. |
+| Consultas históricas de devoluciones | `ix_devolucion_alcance`, `ix_detalle_devolucion_condicion` e `ix_detalle_prestamo_implemento` cubren los filtros de alcance, condición y unidad de BE-12; la fecha ya está cubierta por `ix_devolucion_fecha_devolucion`. |
 | RN-02: plazo coherente | `ck_prestamo_fechas`: `fecha_limite_devolucion > fecha_prestamo`. |
 | RN-07: finalización coherente | `ck_prestamo_finalizacion`: `estado = FINALIZADO` si y solo si hay `fecha_finalizacion`. |
 | Resolución coherente del detalle | `ck_detalle_prestamo_resolucion`: pendiente sin fecha ni condición; `DEVUELTO` con ambas; `RESUELTO_POR_INCIDENCIA` con fecha y sin condición. |

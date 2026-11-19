@@ -956,7 +956,13 @@ hay retraso o cuando el retraso está justificado.
 ```
 
 `GET /api/v1/devoluciones?alcance=PARCIAL&q=PRE-000148` devuelve una página de
-`{ "id", "codigo", "prestamo": { "id", "codigo" }, "usuario", "fechaDevolucion", "alcance", "cantidadImplementos", "conNovedad": boolean }`.
+`{ "id", "codigo", "prestamo": { "id", "codigo" }, "usuario", "fechaDevolucion", "alcance", "cantidadImplementos", "conNovedad": boolean, "implementos": [] }`.
+
+`GET /api/v1/devoluciones/{id}` devuelve el detalle completo de la devolución:
+préstamo, usuario, prestador, fecha, alcance, justificación y observaciones,
+cada unidad devuelta con su condición y estado resultante, las incidencias
+asociadas y la sanción aplicada cuando corresponda. La ruta exige el rol
+`PRESTADOR` y responde `404 RECURSO_NO_ENCONTRADO` si la devolución no existe.
 
 ### 10.8 Incidencias
 

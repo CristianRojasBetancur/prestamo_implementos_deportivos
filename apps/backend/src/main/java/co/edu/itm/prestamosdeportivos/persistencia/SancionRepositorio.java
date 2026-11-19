@@ -20,4 +20,6 @@ public interface SancionRepositorio extends JpaRepository<Sancion, UUID> {
     }
 
     List<Sancion> findByUsuarioIdOrderByFechaInicioDesc(UUID usuarioId);
+
+    Optional<Sancion> findByDevolucionId(UUID devolucionId);
 }

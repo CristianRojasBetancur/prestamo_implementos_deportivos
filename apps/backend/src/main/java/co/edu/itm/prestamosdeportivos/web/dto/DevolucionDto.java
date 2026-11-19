@@ -53,19 +53,20 @@ public final class DevolucionDto {
     }
 
     public record ItemDevolucionRespuesta(ReferenciaImplemento implemento, CondicionDevolucion condicion,
-            EstadoImplemento estadoImplementoResultante, ReferenciaIncidencia incidencia) {
+            String observaciones, EstadoImplemento estadoImplementoResultante, ReferenciaIncidencia incidencia) {
     }
 
     public record SancionAplicadaRespuesta(OffsetDateTime fechaInicio, OffsetDateTime fechaFin, long minutosRetraso) {
     }
 
     public record DevolucionRespuesta(UUID id, String codigo, ReferenciaPrestamo prestamo, ReferenciaUsuario usuario,
-            OffsetDateTime fechaDevolucion, AlcanceDevolucion alcance, boolean retrasoJustificado,
+            ReferenciaUsuario prestador, OffsetDateTime fechaDevolucion, AlcanceDevolucion alcance,
+            boolean retrasoJustificado, String justificacion, String observaciones,
             List<ItemDevolucionRespuesta> items, SancionAplicadaRespuesta sancion) {
     }
 
     public record DevolucionResumenRespuesta(UUID id, String codigo, ReferenciaPrestamo prestamo,
             ReferenciaUsuario usuario, OffsetDateTime fechaDevolucion, AlcanceDevolucion alcance,
-            int cantidadImplementos, boolean conNovedad) {
+            int cantidadImplementos, boolean conNovedad, List<ReferenciaImplemento> implementos) {
     }
 }
