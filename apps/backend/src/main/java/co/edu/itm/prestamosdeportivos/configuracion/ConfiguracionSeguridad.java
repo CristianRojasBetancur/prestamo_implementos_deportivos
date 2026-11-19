@@ -2,18 +2,16 @@ package co.edu.itm.prestamosdeportivos.configuracion;
 
 import co.edu.itm.prestamosdeportivos.seguridad.ConversorJwtAUsuario;
 import co.edu.itm.prestamosdeportivos.web.error.DelegacionErroresSeguridad;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -42,7 +40,9 @@ public class ConfiguracionSeguridad {
     static final String PRESTADOR = "PRESTADOR";
 
     @Bean
-    SecurityFilterChain cadenaFiltrosSeguridad(HttpSecurity http, ManejadorErroresSeguridad manejadorErrores)
+    SecurityFilterChain cadenaFiltrosSeguridad(HttpSecurity http, ManejadorErroresSeguridad manejadorErrores,
+            DelegacionErroresSeguridad erroresSeguridad, JwtDecoder decodificadorJwt,
+            ConversorJwtAUsuario conversorJwt)
             throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -89,11 +89,6 @@ public class ConfiguracionSeguridad {
 
                         .anyRequest().authenticated());
         return http.build();
-    }
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
     }
 
 }

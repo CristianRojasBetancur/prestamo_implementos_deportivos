@@ -45,6 +45,15 @@ public abstract class EntidadBase {
         return actualizadoEn;
     }
 
+    protected void inicializarAuditoria(Instant ahora) {
+        this.creadoEn = ahora;
+        this.actualizadoEn = ahora;
+    }
+
+    protected void marcarActualizado(Instant ahora) {
+        this.actualizadoEn = ahora;
+    }
+
     @Override
     public boolean equals(Object otro) {
         if (this == otro) {

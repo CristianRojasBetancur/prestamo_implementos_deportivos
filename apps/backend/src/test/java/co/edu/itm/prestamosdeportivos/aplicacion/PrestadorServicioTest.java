@@ -26,7 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import co.edu.itm.prestamosdeportivos.dominio.EstadoPrestador;
-import co.edu.itm.prestamosdeportivos.dominio.RolUsuario;
+import co.edu.itm.prestamosdeportivos.dominio.Rol;
 import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 import co.edu.itm.prestamosdeportivos.persistencia.UsuarioRepositorio;
 import co.edu.itm.prestamosdeportivos.web.ActualizarPrestadorSolicitud;
@@ -63,7 +63,7 @@ class PrestadorServicioTest {
         ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
         verify(usuarios).saveAndFlush(captor.capture());
         Usuario guardado = captor.getValue();
-        assertThat(guardado.getRol()).isEqualTo(RolUsuario.PRESTADOR);
+        assertThat(guardado.getRol()).isEqualTo(Rol.PRESTADOR);
         assertThat(guardado.isActivo()).isTrue();
         assertThat(guardado.getCorreo()).isEqualTo("felipe@itm.edu.co");
         assertThat(guardado.getContrasenaHash()).isEqualTo("$2a$10$hash");
@@ -106,8 +106,8 @@ class PrestadorServicioTest {
     void actualizaDatosPermitidos() {
         UUID id = UUID.randomUUID();
         Usuario usuario = new Usuario("123", "Ana", "Pérez", "ana@itm.edu.co", "hash",
-                RolUsuario.PRESTADOR, true, AHORA.minusSeconds(60));
-        when(usuarios.findByIdAndRol(id, RolUsuario.PRESTADOR)).thenReturn(Optional.of(usuario));
+                Rol.PRESTADOR, true, AHORA.minusSeconds(60));
+        when(usuarios.findByIdAndRol(id, Rol.PRESTADOR)).thenReturn(Optional.of(usuario));
         when(usuarios.existsByIdentificacionAndIdNot("123", id)).thenReturn(false);
         when(usuarios.existsByCorreoIgnoreCaseAndIdNot("ana@itm.edu.co", id)).thenReturn(false);
         when(usuarios.saveAndFlush(any(Usuario.class))).thenAnswer(invocacion -> invocacion.getArgument(0));
@@ -115,7 +115,7 @@ class PrestadorServicioTest {
         var resultado = servicio.actualizar(id, new ActualizarPrestadorSolicitud("Ana María", null, null, null));
 
         assertThat(resultado.nombres()).isEqualTo("Ana María");
-        assertThat(usuario.getRol()).isEqualTo(RolUsuario.PRESTADOR);
+        assertThat(usuario.getRol()).isEqualTo(Rol.PRESTADOR);
         assertThat(usuario.getContrasenaHash()).isEqualTo("hash");
         assertThat(usuario.getActualizadoEn()).isEqualTo(AHORA);
     }
@@ -125,8 +125,8 @@ class PrestadorServicioTest {
     void desactivaYConservaRegistro() {
         UUID id = UUID.randomUUID();
         Usuario usuario = new Usuario("123", "Ana", "Pérez", "ana@itm.edu.co", "hash",
-                RolUsuario.PRESTADOR, true, AHORA.minusSeconds(60));
-        when(usuarios.findByIdAndRol(id, RolUsuario.PRESTADOR)).thenReturn(Optional.of(usuario));
+                Rol.PRESTADOR, true, AHORA.minusSeconds(60));
+        when(usuarios.findByIdAndRol(id, Rol.PRESTADOR)).thenReturn(Optional.of(usuario));
         when(usuarios.saveAndFlush(any(Usuario.class))).thenAnswer(invocacion -> invocacion.getArgument(0));
 
         var respuesta = servicio.cambiarEstado(id,

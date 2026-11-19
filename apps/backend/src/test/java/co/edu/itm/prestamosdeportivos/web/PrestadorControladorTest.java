@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import co.edu.itm.prestamosdeportivos.ContenedoresPrueba;
-import co.edu.itm.prestamosdeportivos.dominio.RolUsuario;
 import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 import co.edu.itm.prestamosdeportivos.persistencia.UsuarioRepositorio;
 

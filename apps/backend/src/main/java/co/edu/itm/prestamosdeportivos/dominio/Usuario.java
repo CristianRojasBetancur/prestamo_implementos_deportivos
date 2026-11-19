@@ -1,70 +1,69 @@
 package co.edu.itm.prestamosdeportivos.dominio;
 
 import java.time.Instant;
-import java.util.UUID;
+import java.util.Objects;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/** Usuario solicitante, prestador o administrador del MVP. */
 @Entity
 @Table(name = "usuario")
-public class Usuario {
+public class Usuario extends EntidadBase {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @Column(nullable = false, length = 40, unique = true)
+    @Column(name = "identificacion", nullable = false, length = 30)
     private String identificacion;
-
-    @Column(nullable = false, length = 120)
+    @Column(name = "nombres", nullable = false, length = 100)
     private String nombres;
-
-    @Column(nullable = false, length = 120)
+    @Column(name = "apellidos", nullable = false, length = 100)
     private String apellidos;
-
-    @Column(length = 254)
+    @Column(name = "correo", length = 254)
     private String correo;
-
     @Column(name = "contrasena_hash", length = 100)
     private String contrasenaHash;
-
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private RolUsuario rol;
-
-    @Column(nullable = false)
-    private boolean activo;
-
+    @Column(name = "rol", nullable = false, length = 20)
+    private Rol rol;
+    @Column(name = "activo", nullable = false)
+    private boolean activo = true;
+    @Column(name = "suspendido_hasta")
+    private Instant suspendidoHasta;
     @Column(name = "version_credenciales", nullable = false)
-    private long versionCredenciales;
+    private int versionCredenciales;
 
-    @Column(name = "creado_en", nullable = false)
-    private Instant creadoEn;
-
-    @Column(name = "actualizado_en", nullable = false)
-    private Instant actualizadoEn;
-
-    protected Usuario() { }
+    protected Usuario() {
+    }
 
     public Usuario(String identificacion, String nombres, String apellidos, String correo,
-            String contrasenaHash, RolUsuario rol, boolean activo, Instant ahora) {
-        this.identificacion = identificacion;
-        this.nombres = nombres;
-        this.apellidos = apellidos;
+            String contrasenaHash, Rol rol, boolean activo, Instant ahora) {
+        this.identificacion = Objects.requireNonNull(identificacion, "identificacion");
+        this.nombres = Objects.requireNonNull(nombres, "nombres");
+        this.apellidos = Objects.requireNonNull(apellidos, "apellidos");
         this.correo = correo;
         this.contrasenaHash = contrasenaHash;
-        this.rol = rol;
+        this.rol = Objects.requireNonNull(rol, "rol");
         this.activo = activo;
-        this.versionCredenciales = 0;
-        this.creadoEn = ahora;
-        this.actualizadoEn = ahora;
+        inicializarAuditoria(ahora);
+    }
+
+    public static Usuario solicitante(String identificacion, String nombres, String apellidos) {
+        return new Usuario(identificacion, nombres, apellidos, null, null, Rol.USER, true, Instant.now());
+    }
+
+    public static Usuario conAcceso(String identificacion, String nombres, String apellidos, String correo,
+            String contrasenaHash, Rol rol) {
+        if (rol == Rol.USER) {
+            throw new IllegalArgumentException("Un usuario con rol USER no tiene acceso al sistema.");
+        }
+        return new Usuario(identificacion, nombres, apellidos, Objects.requireNonNull(correo, "correo"),
+                Objects.requireNonNull(contrasenaHash, "contrasenaHash"), rol, true, Instant.now());
+    }
+
+    public boolean puedeIniciarSesion() {
+        return activo && rol != Rol.USER && contrasenaHash != null;
     }
 
     public void actualizarPrestador(String nombres, String apellidos, String identificacion, String correo,
@@ -73,26 +72,36 @@ public class Usuario {
         this.apellidos = apellidos;
         this.identificacion = identificacion;
         this.correo = correo;
-        this.actualizadoEn = ahora;
+        marcarActualizado(ahora);
     }
 
     public void cambiarEstado(boolean activo, Instant ahora) {
         if (this.activo && !activo) {
-            this.versionCredenciales++;
+            versionCredenciales++;
         }
         this.activo = activo;
-        this.actualizadoEn = ahora;
+        marcarActualizado(ahora);
     }
 
-    public UUID getId() { return id; }
+    public void desactivar() {
+        cambiarEstado(false, Instant.now());
+    }
+
+    public void activar() {
+        cambiarEstado(true, Instant.now());
+    }
+
+    public void revocarSesiones() {
+        versionCredenciales++;
+    }
+
     public String getIdentificacion() { return identificacion; }
     public String getNombres() { return nombres; }
     public String getApellidos() { return apellidos; }
     public String getCorreo() { return correo; }
     public String getContrasenaHash() { return contrasenaHash; }
-    public RolUsuario getRol() { return rol; }
+    public Rol getRol() { return rol; }
     public boolean isActivo() { return activo; }
-    public long getVersionCredenciales() { return versionCredenciales; }
-    public Instant getCreadoEn() { return creadoEn; }
-    public Instant getActualizadoEn() { return actualizadoEn; }
+    public Instant getSuspendidoHasta() { return suspendidoHasta; }
+    public int getVersionCredenciales() { return versionCredenciales; }
 }

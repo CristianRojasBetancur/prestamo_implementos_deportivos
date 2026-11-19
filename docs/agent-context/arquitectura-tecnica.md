@@ -70,7 +70,7 @@ Los componentes representan responsabilidades significativas, no entidades aisla
 
 ## Consistencia y transacciones
 
-El registro de préstamos valida usuario y unidades, guarda el préstamo y marca las unidades como PRESTADO dentro de una transacción. Bloqueos pesimistas serializan operaciones por solicitante y unidades, mientras un índice único parcial protege RN-06.
+El registro de préstamos valida usuario y unidades, guarda el préstamo y marca las unidades como PRESTADO dentro de una transacción. Bloqueos pesimistas serializan operaciones por solicitante y unidades, mientras un índice único parcial protege RN-06. Las consultas BE-11 separan la lectura del registro transaccional, usan filtros paginados y proyecciones de conteos para evitar N+1; el vencimiento se calcula con el `Clock` sin mutar el préstamo.
 
 Registrar una devolución debe guardar la devolución, registrar una incidencia si aplica, actualizar el estado de la unidad, aplicar la política de sanción y evaluar el cierre del préstamo dentro del mismo límite transaccional cuando corresponda.
 

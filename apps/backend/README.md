@@ -12,8 +12,8 @@ API REST del MVP, gobernada por la especificación
 | Base de datos | PostgreSQL 17 (Docker Compose en local, Testcontainers en pruebas) |
 | Build | Maven 3.9+ |
 
-> Estado: base técnica inicializada. BE-02 implementa gestión de prestadores;
-> la autenticación JWT y los otros casos de uso del MVP siguen pendientes.
+> Estado: base técnica inicializada. Incluye autenticación JWT, gestión de
+> prestadores, elegibilidad, registro transaccional y consulta de préstamos.
 
 ## Requisitos
 
@@ -136,15 +136,35 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 |---|---|---|
 | `GET /actuator/health` | Público | Estado de la aplicación y de la base de datos. |
 | `GET /actuator/health/liveness`, `/readiness` | Público | Sondas para el despliegue. |
+| `POST /api/v1/auth/login` | Público | Inicia sesión y emite un JWT para ADMIN o PRESTADOR. |
+| `GET /api/v1/auth/me` | Autenticado | Consulta la sesión actual. |
+| `POST /api/v1/auth/logout` | Autenticado | Revoca las sesiones del usuario. |
+| `GET /api/v1/availability` / `/disponibilidad` | Público | Consulta agregada de disponibilidad. |
+| `GET /api/v1/categorias` | Público | Lista categorías activas. |
+| `POST/GET/PUT /api/v1/categorias/{id}` | `ADMIN` | Gestiona categorías. |
+| `POST/GET/PATCH /api/v1/inventory/units` | `ADMIN` | Gestiona unidades del inventario. |
 | `POST /api/v1/providers` | `ADMIN` | Registra un prestador con contraseña inicial. |
 | `GET /api/v1/providers` | `ADMIN` | Lista prestadores con filtros y paginación. |
 | `GET /api/v1/providers/{id}` | `ADMIN` | Consulta un prestador, incluso inactivo. |
 | `PATCH /api/v1/providers/{id}` | `ADMIN` | Actualiza nombres, apellidos, identificación o correo. |
 | `PATCH /api/v1/providers/{id}/estado` | `ADMIN` | Activa o desactiva conservando el historial. |
+| `GET /api/v1/prestamos` / `/api/v1/loans` | `PRESTADOR` | Lista préstamos con paginación y filtros. |
+| `GET /api/v1/prestamos/{id}` / `/api/v1/loans/{id}` | `PRESTADOR` | Consulta el detalle, devoluciones e incidencias. |
+| `POST /api/v1/prestamos` / `/api/v1/loans` | `PRESTADOR` | Registra un préstamo de 1 a 4 unidades. |
+| `GET /api/v1/usuarios/{userId}/situacion` / `/users/{userId}/loan-situation` | `PRESTADOR` | Consulta la situación de préstamos del usuario. |
 
 Las rutas de prestadores requieren rol `ADMIN`; reciben `401` sin autenticación
-y `403` con otro rol. La autenticación JWT aún no está implementada, por lo que
-estas rutas están disponibles tras integrar ese caso de uso definido en BE-01.
+y `403` con otro rol. La autenticación JWT se obtiene mediante
+`POST /api/v1/auth/login`.
+
+## Colección Postman
+
+La colección importable está en
+[`docs/postman/prestamo-implementos-deportivos.postman_collection.json`](../../docs/postman/prestamo-implementos-deportivos.postman_collection.json).
+Después de importarla, configure `admin_identifier`, `admin_password`,
+`provider_identifier` y `provider_password`; ejecute el login correspondiente
+antes de llamar las rutas protegidas. El token se guarda automáticamente en
+`access_token`.
 
 ## Migraciones
 
@@ -153,7 +173,7 @@ estas rutas están disponibles tras integrar ese caso de uso definido en BE-01.
   `V2__crear_tabla_usuario.sql`).
 - Una migración aplicada nunca se edita; cualquier cambio se hace con una
   migración nueva. Hibernate solo valida el esquema (`ddl-auto: validate`).
-- Aplicadas: `V1__linea_base.sql`, `V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql` y `V4__indices_consulta_disponibilidad.sql`.
+- Aplicadas: `V1__linea_base.sql`, `V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql`, `V4__indices_consulta_disponibilidad.sql`, `V5__evento_historial_prestamo.sql` y `V6__habilitar_unaccent.sql`.
 - Reversión: forward-only. En local, `docker compose down -v` recrea la base
   vacía; en entornos compartidos se usa una migración correctiva. Detalle en
   `docs/agent-context/modelo-datos.md` §6.
