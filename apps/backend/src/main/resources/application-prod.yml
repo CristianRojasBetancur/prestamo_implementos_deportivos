@@ -1,0 +1,30 @@
+# Perfil de producción. Todas las variables son obligatorias: sin valores por
+# defecto, la aplicación no arranca si falta alguna.
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USUARIO}
+    password: ${DB_CONTRASENA}
+
+app:
+  cors:
+    # Lista separada por comas de orígenes exactos (sin comodines).
+    origenes-permitidos: ${APP_CORS_ORIGENES}
+  jwt:
+    # Obligatorio: mínimo 32 bytes, generado con un CSPRNG y gestionado como secreto.
+    secreto: ${APP_JWT_SECRETO}
+
+springdoc:
+  # OpenAPI y Swagger UI deshabilitados por defecto en producción.
+  api-docs:
+    enabled: ${APP_OPENAPI_HABILITADO:false}
+  swagger-ui:
+    enabled: ${APP_OPENAPI_HABILITADO:false}
+
+logging:
+  level:
+    root: INFO
+  structured:
+    format:
+      # Logs JSON (Elastic Common Schema); incluyen el MDC correlacionId.
+      console: ecs
