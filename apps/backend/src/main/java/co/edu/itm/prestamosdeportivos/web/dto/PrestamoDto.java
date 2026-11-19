@@ -15,6 +15,7 @@ import co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaImplemento;
 import co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaIncidencia;
 import co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaUsuario;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -28,10 +29,10 @@ public final class PrestamoDto {
 
     /** Las fechas las calcula el servidor (BE-01 D-07); el cliente no las envía. */
     public record CrearPrestamoSolicitud(
-            @NotNull(message = OBLIGATORIO) UUID usuarioId,
+            @JsonAlias("userId") @NotNull(message = OBLIGATORIO) UUID usuarioId,
             @Schema(description = "De 1 a 4 unidades físicas, sin repetidos.")
             @NotEmpty(message = LISTA_NO_VACIA) @Size(max = 4, message = MAXIMO_ELEMENTOS)
-            List<@NotNull(message = OBLIGATORIO) UUID> implementoIds) {
+            @JsonAlias("unitIds") List<@NotNull(message = OBLIGATORIO) UUID> implementoIds) {
     }
 
     public record DetallePrestamoRespuesta(UUID id, ReferenciaImplemento implemento, EstadoDetallePrestamo estado) {

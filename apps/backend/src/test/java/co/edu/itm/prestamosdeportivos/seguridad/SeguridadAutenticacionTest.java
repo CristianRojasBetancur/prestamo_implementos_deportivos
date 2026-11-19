@@ -323,6 +323,7 @@ class SeguridadAutenticacionTest {
                 new Caso("GET", "/api/v1/users/" + id + "/loan-situation", soloPrestador),
                 new Caso("GET", "/api/v1/prestamos", soloPrestador),
                 new Caso("POST", "/api/v1/prestamos", soloPrestador),
+                new Caso("POST", "/api/v1/loans", soloPrestador),
                 new Caso("POST", "/api/v1/prestamos/" + id + "/devoluciones", soloPrestador),
                 new Caso("POST", "/api/v1/prestamos/" + id + "/incidencias", soloPrestador),
                 new Caso("GET", "/api/v1/devoluciones", soloPrestador),

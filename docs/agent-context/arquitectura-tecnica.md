@@ -40,8 +40,11 @@ autorización por rol están implementadas (BE-01 §5, D-16 y D-17). BE-07 imple
 la administración de categorías y unidades físicas, con paginación, filtros,
 transiciones de estado auditadas y baja lógica. BE-08 agrega la consulta pública
 agregada y paginada de disponibilidad, sin códigos ni UUID de unidades. Los módulos de préstamos,
-devoluciones e incidencias aún no tienen sus casos de uso REST implementados en
-esta rama. Los comandos están en `apps/backend/README.md`.
+BE-09 implementa la situación/elegibilidad del usuario y BE-10 el registro
+transaccional de préstamos con bloqueo pesimista del solicitante y las unidades,
+restricción de asignación activa y auditoría del cambio de inventario. Devoluciones
+e incidencias aún no tienen sus casos de uso REST implementados en esta rama. Los
+comandos están en `apps/backend/README.md`.
 
 ## Componentes de referencia
 
@@ -80,11 +83,11 @@ Los componentes representan responsabilidades significativas, no entidades aisla
 
 ## Consistencia y transacciones
 
-Registrar un préstamo debe validar usuario y unidades, guardar el préstamo y marcar las unidades como no disponibles dentro de una coordinación transaccional coherente.
+El registro de préstamos valida usuario y unidades, guarda el préstamo y marca las unidades como PRESTADO dentro de una transacción. Bloqueos pesimistas serializan operaciones por solicitante y unidades, mientras un índice único parcial protege RN-06.
 
 Registrar una devolución debe guardar la devolución, registrar una incidencia si aplica, actualizar el estado de la unidad, aplicar la política de sanción y evaluar el cierre del préstamo dentro del mismo límite transaccional cuando corresponda.
 
-La protección contra préstamos simultáneos debe complementarse con restricciones, bloqueos o mecanismos equivalentes de PostgreSQL definidos por la futura implementación y la especificación.
+Las pruebas de concurrencia PostgreSQL/Testcontainers están definidas para el registro de préstamos; su ejecución requiere Docker.
 
 ## Principios de evolución
 

@@ -1,7 +1,7 @@
 # Modelo de datos y persistencia
 
 Contexto operativo del esquema PostgreSQL del backend. Lo crean las migraciones
-`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql` y `V4__indices_consulta_disponibilidad.sql` y lo
+`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql`, `V4__indices_consulta_disponibilidad.sql` y `V5__evento_historial_prestamo.sql` y lo
 gobierna `docs/specs/BE-01-api-backend-mvp.md` (§6, §7 y §11). Es un documento
 vivo: cualquier migración que cambie tablas, constraints, índices o enumeraciones
 debe actualizarlo.
@@ -44,7 +44,7 @@ ordinales.
 |---|---|---|
 | `Rol` | `usuario.rol` | `USER`, `PRESTADOR`, `ADMIN` |
 | `EstadoImplemento` | `implemento_deportivo.estado` | `DISPONIBLE`, `PRESTADO`, `EN_MANTENIMIENTO`, `DADO_DE_BAJA` |
-| `EventoEstadoImplemento` | `historial_estado_implemento.evento` | `ADMINISTRACION`, `DEVOLUCION`, `INCIDENCIA` |
+| `EventoEstadoImplemento` | `historial_estado_implemento.evento` | `ADMINISTRACION`, `PRESTAMO`, `DEVOLUCION`, `INCIDENCIA` |
 | `EstadoPrestamo` | `prestamo.estado` | `VIGENTE`, `DEVOLUCION_PARCIAL`, `VENCIDO`, `FINALIZADO` |
 | `EstadoDetallePrestamo` | `detalle_prestamo.estado` | `PENDIENTE_DEVOLUCION`, `DEVUELTO`, `RESUELTO_POR_INCIDENCIA` |
 | `CondicionDevolucion` | `detalle_prestamo.condicion_recibida`, `detalle_devolucion.condicion` | `BUENO`, `CON_NOVEDAD` |
