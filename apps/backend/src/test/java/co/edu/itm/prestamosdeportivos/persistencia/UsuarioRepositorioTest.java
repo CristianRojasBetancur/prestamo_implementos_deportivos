@@ -15,7 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import co.edu.itm.prestamosdeportivos.ContenedoresPrueba;
-import co.edu.itm.prestamosdeportivos.dominio.RolUsuario;
+import co.edu.itm.prestamosdeportivos.dominio.Rol;
 import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 
 @DataJpaTest
@@ -31,11 +31,11 @@ class UsuarioRepositorioTest {
     void filtraYPaginaPrestadores() {
         Instant ahora = Instant.parse("2026-11-18T16:00:00Z");
         usuarios.save(new Usuario("1001", "Maria", "Rodriguez", "maria@itm.edu.co", "hash",
-                RolUsuario.PRESTADOR, true, ahora));
+                Rol.PRESTADOR, true, ahora));
         usuarios.save(new Usuario("1002", "María José", "López", "maria.jose@itm.edu.co", "hash",
-                RolUsuario.PRESTADOR, true, ahora));
+                Rol.PRESTADOR, true, ahora));
         usuarios.save(new Usuario("1003", "María", "ADMIN", "admin@itm.edu.co", "hash",
-                RolUsuario.ADMIN, true, ahora));
+                Rol.ADMIN, true, ahora));
         usuarios.flush();
 
         var pagina = usuarios.findAll(
@@ -44,7 +44,7 @@ class UsuarioRepositorioTest {
 
         assertThat(pagina.getTotalElements()).isEqualTo(2);
         assertThat(pagina.getContent()).hasSize(1);
-        assertThat(pagina.getContent().getFirst().getRol()).isEqualTo(RolUsuario.PRESTADOR);
+        assertThat(pagina.getContent().getFirst().getRol()).isEqualTo(Rol.PRESTADOR);
         assertThat(pagina.getContent().getFirst().getNombres()).isEqualTo("Maria");
     }
 }

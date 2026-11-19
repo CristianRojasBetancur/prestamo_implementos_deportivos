@@ -56,7 +56,7 @@ public class DisponibilidadRepositorio {
                        COUNT(*) FILTER (WHERE i.estado = 'DISPONIBLE') AS unidades_disponibles,
                        COUNT(*) AS unidades_totales,
                        (COUNT(*) FILTER (WHERE i.estado = 'DISPONIBLE') > 0) AS disponible
-                """ + FROM_FILTROS + filtros + GROUP_HAVING + " ORDER BY " + orden(pageable.getSort());
+                """ + FROM_FILTROS + filtros + "\n" + GROUP_HAVING + " ORDER BY " + orden(pageable.getSort());
         Query consulta = entityManager.createNativeQuery(contenidoSql);
         asignarParametros(consulta, q, categoriaId);
         consulta.setFirstResult(Math.toIntExact(pageable.getOffset()));
@@ -67,7 +67,7 @@ public class DisponibilidadRepositorio {
         List<DisponibilidadProyeccion> contenido = filas.stream().map(DisponibilidadRepositorio::proyeccion).toList();
 
         String conteoSql = "SELECT COUNT(*) FROM (SELECT i.nombre, c.id, c.nombre " + FROM_FILTROS + filtros
-                + GROUP_HAVING + ") grupos";
+                + "\n" + GROUP_HAVING + ") grupos";
         Query conteo = entityManager.createNativeQuery(conteoSql);
         asignarParametros(conteo, q, categoriaId);
         long total = ((Number) conteo.getSingleResult()).longValue();
@@ -80,8 +80,8 @@ public class DisponibilidadRepositorio {
             filtros.append(" AND c.id = :categoriaId");
         }
         if (q != null && !q.isBlank()) {
-            filtros.append(" AND (translate(lower(i.nombre), 'áéíóúüñ', 'aeiouun') LIKE :q")
-                    .append(" OR translate(lower(c.nombre), 'áéíóúüñ', 'aeiouun') LIKE :q)");
+            filtros.append(" AND (translate(lower(i.nombre), 'áéíóúüñ', 'aeiouun') LIKE translate(lower(:q), 'áéíóúüñ', 'aeiouun')")
+                    .append(" OR translate(lower(c.nombre), 'áéíóúüñ', 'aeiouun') LIKE translate(lower(:q), 'áéíóúüñ', 'aeiouun'))");
         }
         return filtros.toString();
     }

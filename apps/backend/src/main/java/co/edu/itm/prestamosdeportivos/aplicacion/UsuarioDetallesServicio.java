@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import co.edu.itm.prestamosdeportivos.dominio.RolUsuario;
+import co.edu.itm.prestamosdeportivos.dominio.Rol;
 import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 import co.edu.itm.prestamosdeportivos.persistencia.UsuarioRepositorio;
 
@@ -29,7 +29,7 @@ public class UsuarioDetallesServicio implements UserDetailsService {
                         valor.toLowerCase(Locale.ROOT))
                 .orElseThrow(() -> new UsernameNotFoundException("Credenciales inválidas."));
 
-        boolean puedeAutenticarse = usuario.isActivo() && usuario.getRol() != RolUsuario.USER;
+        boolean puedeAutenticarse = usuario.isActivo() && usuario.getRol() != Rol.USER;
         return User.withUsername(usuario.getIdentificacion())
                 .password(usuario.getContrasenaHash() == null ? "" : usuario.getContrasenaHash())
                 .roles(usuario.getRol().name())

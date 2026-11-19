@@ -69,7 +69,8 @@ class EsquemaPersistenciaTest {
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' "
                         + "AND table_name <> 'flyway_schema_history'", String.class);
         assertThat(tablas).containsExactlyInAnyOrder("usuario", "categoria", "implemento_deportivo", "prestamo",
-                "detalle_prestamo", "devolucion", "detalle_devolucion", "incidencia", "sancion");
+                "detalle_prestamo", "devolucion", "detalle_devolucion", "incidencia", "sancion",
+                "historial_estado_implemento");
     }
 
     @Test

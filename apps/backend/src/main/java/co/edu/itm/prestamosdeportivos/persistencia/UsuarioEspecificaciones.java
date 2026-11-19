@@ -8,7 +8,7 @@ import java.util.Locale;
 import org.springframework.data.jpa.domain.Specification;
 
 import co.edu.itm.prestamosdeportivos.dominio.EstadoPrestador;
-import co.edu.itm.prestamosdeportivos.dominio.RolUsuario;
+import co.edu.itm.prestamosdeportivos.dominio.Rol;
 import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
@@ -21,7 +21,7 @@ public final class UsuarioEspecificaciones {
             String correo, EstadoPrestador estado) {
         return (root, query, cb) -> {
             List<Predicate> predicados = new ArrayList<>();
-            predicados.add(cb.equal(root.get("rol"), RolUsuario.PRESTADOR));
+            predicados.add(cb.equal(root.get("rol"), Rol.PRESTADOR));
 
             agregarContiene(predicados, root.get("nombres"), nombres, cb);
             agregarContiene(predicados, root.get("identificacion"), identificacion, cb);

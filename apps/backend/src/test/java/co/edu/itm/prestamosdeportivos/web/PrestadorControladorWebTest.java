@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,15 +27,21 @@ import co.edu.itm.prestamosdeportivos.aplicacion.PrestadorServicio;
 import co.edu.itm.prestamosdeportivos.configuracion.ConfiguracionReloj;
 import co.edu.itm.prestamosdeportivos.configuracion.ConfiguracionSeguridad;
 import co.edu.itm.prestamosdeportivos.configuracion.ManejadorErroresSeguridad;
+import co.edu.itm.prestamosdeportivos.persistencia.UsuarioRepositorio;
+import co.edu.itm.prestamosdeportivos.web.error.DelegacionErroresSeguridad;
+import co.edu.itm.prestamosdeportivos.web.error.FabricaProblemas;
 import co.edu.itm.prestamosdeportivos.web.error.ManejadorGlobalErrores;
 
 @WebMvcTest(PrestadorControlador.class)
 @Import({ConfiguracionSeguridad.class, ConfiguracionReloj.class,
-        ManejadorErroresSeguridad.class, ManejadorGlobalErrores.class})
+        ManejadorErroresSeguridad.class, DelegacionErroresSeguridad.class, FabricaProblemas.class,
+        ManejadorGlobalErrores.class})
 class PrestadorControladorWebTest {
 
     @Autowired MockMvc mvc;
     @MockitoBean PrestadorServicio prestadores;
+    @MockitoBean UsuarioRepositorio usuarios;
+    @MockitoBean JwtDecoder decodificadorJwt;
 
     @Test
     @DisplayName("Controller: petición anónima recibe 401")

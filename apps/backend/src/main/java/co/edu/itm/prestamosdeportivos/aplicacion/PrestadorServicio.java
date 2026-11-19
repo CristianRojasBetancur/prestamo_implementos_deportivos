@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.hibernate.exception.ConstraintViolationException;
 
 import co.edu.itm.prestamosdeportivos.dominio.EstadoPrestador;
-import co.edu.itm.prestamosdeportivos.dominio.RolUsuario;
+import co.edu.itm.prestamosdeportivos.dominio.Rol;
 import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 import co.edu.itm.prestamosdeportivos.persistencia.UsuarioEspecificaciones;
 import co.edu.itm.prestamosdeportivos.persistencia.UsuarioRepositorio;
@@ -58,7 +58,7 @@ public class PrestadorServicio {
         String correo = solicitud.correo().trim().toLowerCase(Locale.ROOT);
         validarUnicidad(identificacion, correo, null);
         Usuario usuario = new Usuario(identificacion, solicitud.nombres().trim(), solicitud.apellidos().trim(),
-                correo, passwordEncoder.encode(solicitud.contrasenaInicial()), RolUsuario.PRESTADOR, true,
+                correo, passwordEncoder.encode(solicitud.contrasenaInicial()), Rol.PRESTADOR, true,
                 reloj.instant());
         try {
             return representar(usuarios.saveAndFlush(usuario));
@@ -117,7 +117,7 @@ public class PrestadorServicio {
     }
 
     private Usuario buscarPrestador(UUID id) {
-        return usuarios.findByIdAndRol(id, RolUsuario.PRESTADOR)
+        return usuarios.findByIdAndRol(id, Rol.PRESTADOR)
                 .orElseThrow(() -> new ExcepcionApi(HttpStatus.NOT_FOUND, "RECURSO_NO_ENCONTRADO",
                         "Recurso no encontrado", "No existe un prestador con el identificador indicado."));
     }
