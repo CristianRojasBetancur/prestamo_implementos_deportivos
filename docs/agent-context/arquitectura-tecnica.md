@@ -31,8 +31,12 @@ Flyway; PostgreSQL 17 local con Docker Compose y Testcontainers en pruebas;
 seguridad stateless deny-by-default; CORS por variable de entorno; y
 `/actuator/health` público. El esquema del MVP (9 tablas, migración V2), sus
 entidades JPA y repositorios están creados y documentados en
-`docs/agent-context/modelo-datos.md`. Todavía no hay casos de uso de negocio ni
-endpoints de dominio. Los comandos están en `apps/backend/README.md`.
+`docs/agent-context/modelo-datos.md`. La capa transversal de contratos está
+implementada: DTO de todos los casos de uso, validación, formato de error
+`application/problem+json` con catálogo de códigos, correlación
+`X-Correlation-Id`, logs con MDC y OpenAPI (`docs/specs/BE-01-A-contratos-y-errores.md`).
+Todavía no hay casos de uso de negocio ni endpoints de dominio. Los comandos están
+en `apps/backend/README.md`.
 
 ## Componentes de referencia
 
