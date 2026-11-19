@@ -1,7 +1,7 @@
 # Modelo de datos y persistencia
 
 Contexto operativo del esquema PostgreSQL del backend. Lo crean las migraciones
-`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql` y `V3__historial_estado_implemento.sql` y lo
+`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql` y `V4__indices_consulta_disponibilidad.sql` y lo
 gobierna `docs/specs/BE-01-api-backend-mvp.md` (§6, §7 y §11). Es un documento
 vivo: cualquier migración que cambie tablas, constraints, índices o enumeraciones
 debe actualizarlo.
@@ -77,6 +77,7 @@ Nunca se renombra una constante Java sin esa migración.
 | Unicidad sin distinguir mayúsculas | `uq_usuario_correo (lower(correo))` y `uq_categoria_nombre (lower(nombre))`. |
 | Unicidad exacta | `uq_usuario_identificacion`, `uq_implemento_codigo_inventario` y los códigos legibles. |
 | Auditoría de estados de unidad | `historial_estado_implemento` referencia la unidad sin cascada y conserva estado anterior/nuevo, evento y motivo. |
+| Consulta pública de disponibilidad | `ix_implemento_catalogo_activo` cubre categoría/nombre/estado de unidades no retiradas; `ix_incidencia_registrada_implemento` acelera la exclusión de incidencias abiertas. |
 | RN-02: plazo coherente | `ck_prestamo_fechas`: `fecha_limite_devolucion > fecha_prestamo`. |
 | RN-07: finalización coherente | `ck_prestamo_finalizacion`: `estado = FINALIZADO` si y solo si hay `fecha_finalizacion`. |
 | Resolución coherente del detalle | `ck_detalle_prestamo_resolucion`: pendiente sin fecha ni condición; `DEVUELTO` con ambas; `RESUELTO_POR_INCIDENCIA` con fecha y sin condición. |

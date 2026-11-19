@@ -65,7 +65,8 @@ public class ConfiguracionSeguridad {
                         .requestMatchers(HttpMethod.GET, "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html",
                                 "/swagger-ui/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/disponibilidad", "/api/v1/categorias").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/disponibilidad", "/api/v1/availability",
+                                "/api/v1/categorias").permitAll()
 
                         // Sesión propia: cualquier usuario con acceso.
                         .requestMatchers("/api/v1/auth/**").hasAnyRole(ADMIN, PRESTADOR)

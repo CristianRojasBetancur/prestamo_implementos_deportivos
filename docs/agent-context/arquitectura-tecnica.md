@@ -38,7 +38,8 @@ implementada: DTO de todos los casos de uso, validación, formato de error
 La autenticación JWT (login, sesión actual y cierre de sesión con revocación) y la
 autorización por rol están implementadas (BE-01 §5, D-16 y D-17). BE-07 implementa
 la administración de categorías y unidades físicas, con paginación, filtros,
-transiciones de estado auditadas y baja lógica. Los módulos de préstamos,
+transiciones de estado auditadas y baja lógica. BE-08 agrega la consulta pública
+agregada y paginada de disponibilidad, sin códigos ni UUID de unidades. Los módulos de préstamos,
 devoluciones e incidencias aún no tienen sus casos de uso REST implementados en
 esta rama. Los comandos están en `apps/backend/README.md`.
 
