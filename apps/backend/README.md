@@ -102,6 +102,9 @@ docker compose down -v     # elimina también el volumen (base vacía la próxim
 | `APP_CORS_ORIGENES` | local, prod | Sí en prod | Orígenes exactos del frontend separados por coma. No admite `*`. Por defecto en local: `http://localhost:5173`. |
 | `APP_ZONA_HORARIA` | todos | No | Zona institucional. Por defecto `America/Bogota`. |
 | `APP_OPENAPI_HABILITADO` | prod | No | `true` para publicar OpenAPI/Swagger en producción. Por defecto `false`. |
+| `APP_JWT_SECRETO` | local, prod | Sí | Secreto HS256 de 32 bytes o más. Ver `.env.example` para generarlo. |
+| `APP_JWT_EXPIRACION` | todos | No | Duración del token (ISO-8601). Por defecto `PT60M`. |
+| `APP_ADMIN_CORREO`, `APP_ADMIN_CONTRASENA`, `APP_ADMIN_IDENTIFICACION` | todos | No | Crea el primer ADMIN al arrancar si no existe (contraseña de 12+ caracteres). |
 | `SERVER_PORT` | todos | No | Por defecto `8080`. |
 | `SPRING_PROFILES_ACTIVE` | — | No | `local` si no se define. |
 
@@ -126,7 +129,8 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 | `aplicacion` | Servicios de aplicación (`*Servicio`), interfaces de casos de uso y transacciones. |
 | `dominio` | Entidades JPA, enumeraciones de estado, invariantes y políticas (State, Chain, Strategy). |
 | `persistencia` | Repositorios Spring Data (`*Repositorio`) con las consultas mínimas. |
-| `configuracion` | Seguridad, CORS, reloj (`Clock`) y propiedades tipadas. |
+| `configuracion` | Cadena de seguridad, CORS, correlación, OpenAPI, reloj (`Clock`) y propiedades tipadas. |
+| `seguridad` | JWT (emisión y validación), hash de contraseñas, principal `UsuarioAutenticado` y revocación. |
 
 ## Endpoints disponibles
 
@@ -134,11 +138,14 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 |---|---|---|
 | `GET /actuator/health` | Público | Estado de la aplicación y de la base de datos. |
 | `GET /actuator/health/liveness`, `/readiness` | Público | Sondas para el despliegue. |
+| `POST /api/v1/auth/login` | Público | Inicio de sesión; devuelve un JWT Bearer. |
+| `GET /api/v1/auth/me` | ADMIN, PRESTADOR | Usuario autenticado y su rol. |
+| `POST /api/v1/auth/logout` | ADMIN, PRESTADOR | Revoca todas las sesiones del usuario. |
 | `GET /v3/api-docs` | Público (local/pruebas) | Documento OpenAPI 3.1. |
 | `GET /swagger-ui.html` | Público (local/pruebas) | Swagger UI para explorar la API. |
 
-Cualquier otra ruta responde `401` mientras no se implemente la autenticación
-(BE-01 §5). Todas las respuestas de error usan `application/problem+json` con un
+Las demás rutas de `/api/v1` exigen un token y el rol de la matriz de BE-01
+§3.2: sin token responden `401` y con un rol no autorizado, `403`. Todas las respuestas de error usan `application/problem+json` con un
 `codigo` estable e incluyen la cabecera `X-Correlation-Id`; el formato está en
 [`docs/specs/BE-01-A-contratos-y-errores.md`](../../docs/specs/BE-01-A-contratos-y-errores.md).
 
