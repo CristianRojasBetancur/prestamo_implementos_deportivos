@@ -1,0 +1,17 @@
+# Perfil de desarrollo local. Usa el PostgreSQL de compose.yaml.
+# Lee las variables desde apps/backend/.env (copia de .env.example, ignorado por git)
+# o desde variables de entorno del sistema, que tienen prioridad.
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PUERTO:5432}/${DB_NOMBRE}
+    username: ${DB_USUARIO}
+    password: ${DB_CONTRASENA}
+
+app:
+  cors:
+    origenes-permitidos: ${APP_CORS_ORIGENES:http://localhost:5173}
+  jwt:
+    # Obligatorio: mínimo 32 bytes. Ver .env.example para generarlo.
+    secreto: ${APP_JWT_SECRETO}

@@ -1,0 +1,13 @@
+# Compilación
+target/
+
+# Variables locales (pueden contener contraseñas)
+.env
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
