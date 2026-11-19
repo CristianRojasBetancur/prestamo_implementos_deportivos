@@ -12,7 +12,7 @@ API REST del MVP, gobernada por la especificación
 | Base de datos | PostgreSQL 17 (Docker Compose en local, Testcontainers en pruebas) |
 | Build | Maven 3.9+ |
 
-> Estado: API inicializada con autenticación, gestión de categorías e inventario, disponibilidad, y consulta de situación/elegibilidad de usuarios. El registro transaccional de préstamos y otros casos de ciclo de vida siguen pendientes. Modelo de datos: [`docs/agent-context/modelo-datos.md`](../../docs/agent-context/modelo-datos.md).
+> Estado: API inicializada con autenticación, gestión de categorías e inventario, consulta de disponibilidad, elegibilidad de usuarios y registro transaccional de préstamos. Devoluciones e incidencias siguen pendientes. Modelo de datos: [`docs/agent-context/modelo-datos.md`](../../docs/agent-context/modelo-datos.md).
 
 ## Requisitos
 
@@ -141,6 +141,7 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 | `POST /api/v1/auth/logout` | ADMIN, PRESTADOR | Revoca todas las sesiones del usuario. |
 | `GET /api/v1/availability`, `/api/v1/disponibilidad` | Público | Consulta agregada y paginada; no expone códigos ni UUID de unidades. |
 | `GET /api/v1/usuarios/{id}/situacion`, `/api/v1/users/{userId}/loan-situation` | PRESTADOR | Consulta informativa de elegibilidad; valida 4 unidades, sanciones, vencidos y estado. |
+| `POST /api/v1/prestamos`, `/api/v1/loans` | PRESTADOR | Registra préstamo y asigna unidades atómicamente; fechas calculadas por el servidor. |
 | `GET /v3/api-docs` | Público (local/pruebas) | Documento OpenAPI 3.1. |
 | `GET /swagger-ui.html` | Público (local/pruebas) | Swagger UI para explorar la API. |
 

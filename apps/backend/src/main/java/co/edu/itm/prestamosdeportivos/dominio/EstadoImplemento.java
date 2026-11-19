@@ -18,6 +18,7 @@ public enum EstadoImplemento {
             return false;
         }
         return switch (evento) {
+            case PRESTAMO -> this == DISPONIBLE && destino == PRESTADO;
             case ADMINISTRACION -> switch (this) {
                 case DISPONIBLE -> destino == EN_MANTENIMIENTO || destino == DADO_DE_BAJA;
                 case EN_MANTENIMIENTO -> destino == DISPONIBLE || destino == DADO_DE_BAJA;

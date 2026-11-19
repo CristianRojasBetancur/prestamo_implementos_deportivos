@@ -15,6 +15,7 @@ Los documentos de contexto no deben utilizarse como sustituto de una especificac
 | BE-01-A | [Contratos comunes y formato de errores](BE-01-A-contratos-y-errores.md) | API backend | Implementado |
 | BE-07 | [Categorías e inventario de unidades físicas](BE-07-categorias-e-inventario.md) | API backend | Implementado; integración pendiente de ejecución con Docker |
 | BE-08 | [Consulta pública de disponibilidad](BE-08-consulta-disponibilidad.md) | API backend | Implementado; integración y medición RNF-01 pendientes del entorno |
-| BE-09 | [Elegibilidad y situación de préstamo del usuario](BE-09-elegibilidad-y-situacion-usuario.md) | API backend | En implementación |
+| BE-09 | [Elegibilidad y situación de préstamo del usuario](BE-09-elegibilidad-y-situacion-usuario.md) | API backend | Implementado; integración pendiente del entorno |
+| BE-10 | [Registro transaccional de préstamos](BE-10-registro-transaccional-prestamos.md) | API backend | Implementado; concurrencia PostgreSQL pendiente de verificación en el entorno |
 
 BE-01 gobierna toda implementación en `apps/backend/`: contratos HTTP/JSON, errores, reglas de negocio, trazabilidad y decisiones sobre ambigüedades del documento fuente. Una especificación de módulo concreta sus casos de uso y documenta explícitamente cualquier desviación de contrato.

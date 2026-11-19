@@ -8,6 +8,8 @@ import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 
 public interface UsuarioRepositorio extends JpaRepository<Usuario, UUID> {
 
@@ -24,4 +26,9 @@ public interface UsuarioRepositorio extends JpaRepository<Usuario, UUID> {
     }
 
     Optional<Usuario> findByIdAndRol(UUID id, Rol rol);
+
+    /** Serializa préstamos dirigidos al mismo solicitante para proteger RN-01. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from Usuario u where u.id = :id and u.rol = :rol")
+    Optional<Usuario> bloquearPorIdAndRol(@Param("id") UUID id, @Param("rol") Rol rol);
 }

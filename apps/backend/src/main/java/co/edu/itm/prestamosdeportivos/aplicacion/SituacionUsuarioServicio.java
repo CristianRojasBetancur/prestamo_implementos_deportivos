@@ -47,9 +47,13 @@ public class SituacionUsuarioServicio {
     @Transactional(readOnly=true)
     public void validarSolicitudParaPrestamo(UUID usuarioId,List<UUID> implementoIds){
         var usuario=usuarios.findByIdAndRol(usuarioId,Rol.USER).orElse(null); var ahora=reloj.instant();
-        var sancion=usuario==null?java.util.Optional.<co.edu.itm.prestamosdeportivos.dominio.Sancion>empty():sanciones.buscarVigente(usuarioId,ahora);
-        long activas=usuario==null?0:detalles.contarUnidadesPendientesDeUsuario(usuarioId);
-        long vencidos=usuario==null?0:prestamos.contarPrestamosVencidosPendientes(usuarioId,EstadoPrestamo.FINALIZADO,ahora);
+        if (usuario == null) {
+            throw new ExcepcionDominio(CodigoError.RECURSO_NO_ENCONTRADO, "El usuario solicitante no existe o no tiene rol USER.",
+                    List.of(new ErrorCampo("usuarioId", "no existe un usuario solicitante con ese identificador")));
+        }
+        var sancion=sanciones.buscarVigente(usuarioId,ahora);
+        long activas=detalles.contarUnidadesPendientesDeUsuario(usuarioId);
+        long vencidos=prestamos.contarPrestamosVencidosPendientes(usuarioId,EstadoPrestamo.FINALIZADO,ahora);
         var resultado=cadena.ejecutar(new ContextoElegibilidad(usuario,ahora,activas,0,vencidos,sancion.isPresent(),implementoIds,ahora,ahora.plus(Duration.ofHours(24))));
         if(!resultado.habilitado()){
             var primer=resultado.motivos().get(0);

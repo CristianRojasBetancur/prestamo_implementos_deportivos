@@ -10,6 +10,10 @@ class EstadoImplementoTest {
 
     @Test
     void disponibleSoloPasaAMantenimientoOBajaPorAdministracion() {
+        assertThat(EstadoImplemento.DISPONIBLE.admite(EstadoImplemento.PRESTADO,
+                EventoEstadoImplemento.PRESTAMO)).isTrue();
+        assertThat(EstadoImplemento.EN_MANTENIMIENTO.admite(EstadoImplemento.PRESTADO,
+                EventoEstadoImplemento.PRESTAMO)).isFalse();
         assertThat(EstadoImplemento.DISPONIBLE.admite(EstadoImplemento.EN_MANTENIMIENTO,
                 EventoEstadoImplemento.ADMINISTRACION)).isTrue();
         assertThat(EstadoImplemento.DISPONIBLE.admite(EstadoImplemento.DADO_DE_BAJA,
