@@ -25,6 +25,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -73,9 +74,16 @@ public class ManejadorGlobalErrores extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Object> manejarAutenticacion(AuthenticationException ex, HttpServletRequest solicitud) {
-        CodigoError codigo = ex instanceof BadCredentialsException
-                ? CodigoError.CREDENCIALES_INVALIDAS
-                : CodigoError.NO_AUTENTICADO;
+        // Sin credenciales → NO_AUTENTICADO; credenciales erróneas → CREDENCIALES_INVALIDAS;
+        // token presente pero inválido, expirado o revocado → SESION_INVALIDA.
+        CodigoError codigo;
+        if (ex instanceof BadCredentialsException) {
+            codigo = CodigoError.CREDENCIALES_INVALIDAS;
+        } else if (ex instanceof InsufficientAuthenticationException) {
+            codigo = CodigoError.NO_AUTENTICADO;
+        } else {
+            codigo = CodigoError.SESION_INVALIDA;
+        }
         return responder(HttpStatus.UNAUTHORIZED, codigo, null, solicitud.getRequestURI(), List.of());
     }
 

@@ -231,14 +231,19 @@ con `codigo` y `errores`:
 
 | Aspecto | Decisión |
 |---|---|
-| Mecanismo | JWT firmado con HS256. El secreto tiene 256 bits como mínimo y se lee de `APP_JWT_SECRETO`; nunca se versiona. |
-| Transporte | Cabecera `Authorization: Bearer <token>`. No se usan cookies, por lo que no se requiere protección CSRF. |
-| Expiración | 60 minutos, configurable con `app.jwt.expiracion`. No hay *refresh token* en el MVP: al expirar, el usuario vuelve a iniciar sesión. |
-| Claims | `sub` (UUID del usuario), `rol`, `iat`, `exp`, `ver` (versión de credenciales). |
-| Almacenamiento en el cliente | En memoria o `sessionStorage`. Nunca en `localStorage`. |
-| Revocación | En cada solicitud autenticada se verifica que el usuario siga `activo` y que `ver` coincida con `usuario.version_credenciales`. Desactivar un prestador o cambiar su contraseña invalida de inmediato sus tokens (`401 SESION_INVALIDA`). |
-| Cierre de sesión | Lo hace el cliente descartando el token. No existe endpoint de *logout* en el MVP. |
-| Contraseñas | Hash BCrypt (factor 10 como mínimo). Longitud mínima de 8 caracteres. |
+| Mecanismo | JWT firmado con HS256, emitido y validado con el resource server de Spring Security (Nimbus). El secreto tiene 256 bits como mínimo y se lee de `APP_JWT_SECRETO`; nunca se versiona. La aplicación no arranca con un secreto corto o con el valor de ejemplo. |
+| Transporte | Cabecera `Authorization: Bearer <token>` sobre HTTPS. No se aceptan tokens en la URL ni en cookies. |
+| CSRF | Deshabilitado de forma justificada: la API es stateless y no usa cookies de sesión. El token viaja en una cabecera que un sitio de terceros no puede adjuntar automáticamente, por lo que el ataque CSRF no aplica. |
+| CORS | Solo los orígenes exactos de `APP_CORS_ORIGENES` (sin comodines), métodos del contrato, cabeceras `Authorization`, `Content-Type` y `X-Correlation-Id`, y `allowCredentials = false` (no hay cookies). |
+| Expiración | 60 minutos (`APP_JWT_EXPIRACION`, por defecto `PT60M`), con una tolerancia de reloj de 60 s. No hay *refresh token* en el MVP: al expirar, el usuario vuelve a iniciar sesión. |
+| Claims | `iss` (`https://prestamos.itm.edu.co/api`), `sub` (UUID del usuario), `iat`, `exp`, `jti`, `rol` y `ver` (versión de credenciales). No contiene nombre, correo, identificación ni otros datos personales. El backend **no autoriza con el claim `rol`**: en cada solicitud carga el rol desde la base de datos. |
+| Almacenamiento en el cliente | En memoria o `sessionStorage` (se descarta al cerrar la pestaña). Nunca en `localStorage` ni en cookies accesibles por JavaScript. El riesgo residual frente a XSS se mitiga con la expiración corta y la revocación. |
+| Revocación | En cada solicitud autenticada se verifica que el usuario exista, siga `activo`, no sea `USER` y que `ver` coincida con `usuario.version_credenciales`. Desactivar un prestador, cerrar sesión o cambiar su contraseña invalida de inmediato sus tokens (`401 SESION_INVALIDA`). |
+| Cierre de sesión | `POST /api/v1/auth/logout` (`204`) incrementa `version_credenciales`: revoca **todas** las sesiones del usuario. El cliente además descarta el token (`D-16`). |
+| Contraseñas | BCrypt con factor de costo 12 mediante `DelegatingPasswordEncoder` (prefijo `{bcrypt}`, que permite migrar de algoritmo). Longitud de 8 a 72 caracteres. Nunca se guardan ni se registran en claro; los DTO que las transportan las ocultan en `toString()`. |
+| Enumeración de cuentas | Siempre se ejecuta una verificación BCrypt, contra un hash señuelo si la cuenta no existe, para que el tiempo de respuesta tampoco revele si existe. |
+| Usuarios suspendidos | La suspensión (RN-03) restringe **recibir préstamos** (RN-05), no el inicio de sesión: aplica a solicitantes `USER`, que no inician sesión. No se bloquea el login de un PRESTADOR o ADMIN por sanciones. |
+| Administrador inicial | Se crea al arrancar solo si se definen `APP_ADMIN_CORREO` y `APP_ADMIN_CONTRASENA` (12 caracteres o más) y no existe ya. No hay credenciales en el código. |
 | Protección de fuerza bruta | Fuera del alcance del MVP. Se registra como recomendación en `PEND-03`. |
 | Rol `USER` | No tiene contraseña ni puede iniciar sesión. Si un `USER` intenta autenticarse, recibe `401 CREDENCIALES_INVALIDAS`. |
 
@@ -578,6 +583,7 @@ los casos protegidos y no se repiten.
 |---|---|---|---|---|
 | 1 | `POST /api/v1/auth/login` | Público | CU-01 | `200` |
 | 2 | `GET /api/v1/auth/me` | `ADMIN`, `PRESTADOR` | CU-02 | `200` |
+| 2b | `POST /api/v1/auth/logout` | `ADMIN`, `PRESTADOR` | Cierre de sesión (`D-16`) | `204` |
 | 3 | `GET /api/v1/disponibilidad` | Público | CU-12 | `200` paginado |
 | 4 | `GET /api/v1/categorias` | Público | CU-07 | `200` (lista sin paginar) |
 | 5 | `POST /api/v1/categorias` | `ADMIN` | CU-07 | `201` |
@@ -1125,6 +1131,8 @@ SOLID del Entregable 2.
 | `D-13` | ¿Cómo obtiene su contraseña un prestador? | El administrador la fija al crearlo (`contrasenaInicial`). No se envían notificaciones porque están fuera del alcance. | RF-03; alcance |
 | `D-14` | ¿El administrador opera préstamos? | No. Los endpoints de operación son exclusivos de `PRESTADOR` (RNF-03). Si se requiere, se amplía en otra especificación. | Matriz de actores |
 | `D-15` | En el formulario de login de FE-01 la persona elige su rol. | El rol lo determina **solo** el servidor a partir de la cuenta. El selector del frontend es una ayuda visual y no se envía a la API. | FE-01; RNF-03 |
+| `D-16` | El issue de autenticación pide un cierre de sesión "según el mecanismo elegido", y la versión inicial de BE-01 no tenía endpoint. | Se agrega `POST /api/v1/auth/logout`, que revoca todas las sesiones del usuario incrementando `version_credenciales`. Con JWT stateless es la única forma de invalidar un token antes de que expire sin mantener una lista de tokens revocados. | Issue de autenticación; §5 |
+| `D-17` | Autorización por rol. | Doble barrera: matriz de rutas en `ConfiguracionSeguridad` (por prefijo y método, según §3.2 y §9) y `@PreAuthorize` en los controladores. `GET /implementos/prestables` es de PRESTADOR, aunque el resto de `/implementos` sea de ADMIN. | RNF-03 |
 
 ### Pendientes que requieren confirmación del equipo
 

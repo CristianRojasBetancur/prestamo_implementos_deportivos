@@ -54,3 +54,13 @@ logging:
 app:
   # Zona institucional para serializar fechas (BE-01 §4.4).
   zona-horaria: ${APP_ZONA_HORARIA:America/Bogota}
+  jwt:
+    # Duración de la sesión (BE-01 §5). Formato ISO-8601 de duración.
+    expiracion: ${APP_JWT_EXPIRACION:PT60M}
+    emisor: https://prestamos.itm.edu.co/api
+    # El secreto se define por perfil desde APP_JWT_SECRETO (nunca en el repositorio).
+  admin-inicial:
+    # Opcional: si se definen correo y contraseña, se crea el primer ADMIN al arrancar.
+    correo: ${APP_ADMIN_CORREO:}
+    contrasena: ${APP_ADMIN_CONTRASENA:}
+    identificacion: ${APP_ADMIN_IDENTIFICACION:ADMIN-0001}

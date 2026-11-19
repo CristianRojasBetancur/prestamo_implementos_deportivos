@@ -35,8 +35,10 @@ entidades JPA y repositorios están creados y documentados en
 implementada: DTO de todos los casos de uso, validación, formato de error
 `application/problem+json` con catálogo de códigos, correlación
 `X-Correlation-Id`, logs con MDC y OpenAPI (`docs/specs/BE-01-A-contratos-y-errores.md`).
-Todavía no hay casos de uso de negocio ni endpoints de dominio. Los comandos están
-en `apps/backend/README.md`.
+La autenticación JWT (login, sesión actual y cierre de sesión con revocación) y la
+autorización por rol están implementadas (BE-01 §5, D-16 y D-17). Todavía no hay
+casos de uso de negocio ni endpoints de dominio. Los comandos están en
+`apps/backend/README.md`.
 
 ## Componentes de referencia
 

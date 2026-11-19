@@ -10,6 +10,9 @@ app:
   cors:
     # Lista separada por comas de orígenes exactos (sin comodines).
     origenes-permitidos: ${APP_CORS_ORIGENES}
+  jwt:
+    # Obligatorio: mínimo 32 bytes, generado con un CSPRNG y gestionado como secreto.
+    secreto: ${APP_JWT_SECRETO}
 
 springdoc:
   # OpenAPI y Swagger UI deshabilitados por defecto en producción.
