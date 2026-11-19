@@ -1,0 +1,66 @@
+# Configuración común a todos los perfiles (local, test, prod).
+# Los valores sensibles NUNCA se escriben aquí: provienen de variables de entorno.
+spring:
+  application:
+    name: prestamo-implementos-backend
+  profiles:
+    # Perfil usado cuando no se indica SPRING_PROFILES_ACTIVE (desarrollo local).
+    default: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      # El esquema lo gestiona Flyway; Hibernate solo valida (BE-01 §11).
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      # Público, sin detalles internos; responde UP/DOWN e incluye la base de datos.
+      show-details: never
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  # Solo documentar la API pública del MVP.
+  paths-to-match: /api/v1/**
+  default-produces-media-type: application/json
+
+logging:
+  pattern:
+    # Incluye el identificador de correlación (X-Correlation-Id) en cada línea.
+    level: "%5p [%X{correlacionId:-}]"
+
+app:
+  # Zona institucional para serializar fechas (BE-01 §4.4).
+  zona-horaria: ${APP_ZONA_HORARIA:America/Bogota}
+  jwt:
+    # Duración de la sesión (BE-01 §5). Formato ISO-8601 de duración.
+    expiracion: ${APP_JWT_EXPIRACION:PT60M}
+    emisor: https://prestamos.itm.edu.co/api
+    # El secreto se define por perfil desde APP_JWT_SECRETO (nunca en el repositorio).
+  admin-inicial:
+    # Opcional: si se definen correo y contraseña, se crea el primer ADMIN al arrancar.
+    correo: ${APP_ADMIN_CORREO:}
+    contrasena: ${APP_ADMIN_CONTRASENA:}
+    identificacion: ${APP_ADMIN_IDENTIFICACION:ADMIN-0001}

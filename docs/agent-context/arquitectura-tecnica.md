@@ -21,9 +21,26 @@ La aplicación web se comunica con la API mediante HTTP/JSON sobre HTTPS. La web
 `apps/frontend/` está inicializado con React, Vite y TypeScript. El alcance de
 interfaz implementado inicialmente está descrito en
 `docs/specs/FE-01-frontend-mvp.md`. El cliente HTTP centraliza la URL base y los
-errores; mientras no exista contrato backend, las pantallas presentan estados
-vacíos y no confirman operaciones. `apps/backend/` y PostgreSQL todavía no están
-implementados en este repositorio.
+errores; mientras no consuma la API, las pantallas presentan estados vacíos y
+no confirman operaciones.
+
+`apps/backend/` está inicializado como aplicación Spring Boot 4.1 (Java 21,
+Maven) según `docs/specs/BE-01-api-backend-mvp.md`, que es el contrato de la
+API. Contiene la base técnica: perfiles `local`, `test` y `prod`; migraciones
+Flyway; PostgreSQL 17 local con Docker Compose y Testcontainers en pruebas;
+seguridad stateless deny-by-default; CORS por variable de entorno; y
+`/actuator/health` público. El esquema inicial del MVP (9 tablas, migración V2), sus
+entidades JPA y repositorios están creados y documentados en
+`docs/agent-context/modelo-datos.md`. La capa transversal de contratos está
+implementada: DTO de todos los casos de uso, validación, formato de error
+`application/problem+json` con catálogo de códigos, correlación
+`X-Correlation-Id`, logs con MDC y OpenAPI (`docs/specs/BE-01-A-contratos-y-errores.md`).
+La autenticación JWT (login, sesión actual y cierre de sesión con revocación) y la
+autorización por rol están implementadas (BE-01 §5, D-16 y D-17). BE-07 implementa
+la administración de categorías y unidades físicas, con paginación, filtros,
+transiciones de estado auditadas y baja lógica. Los módulos de préstamos,
+devoluciones e incidencias aún no tienen sus casos de uso REST implementados en
+esta rama. Los comandos están en `apps/backend/README.md`.
 
 ## Componentes de referencia
 

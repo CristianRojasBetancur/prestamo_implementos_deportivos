@@ -30,7 +30,7 @@ No se deben crear APIs, pantallas, entidades o integraciones que no estén respa
 - El MVP contempla autenticación, autorización por rol, prestadores, inventario, préstamos, devoluciones e incidencias.
 - Los actores son Usuario, Administrador y Prestador.
 - La arquitectura de referencia contiene aplicación web, API backend y PostgreSQL.
-- Las tecnologías de referencia son React/Vite, Java/Spring Boot y PostgreSQL. `apps/frontend/` está inicializado con React, Vite y TypeScript; `apps/backend/` todavía no contiene una aplicación.
+- Las tecnologías de referencia son React/Vite, Java/Spring Boot y PostgreSQL. `apps/frontend/` está inicializado con React, Vite y TypeScript; `apps/backend/` está inicializado con Java 21, Spring Boot 4.1, Maven, Flyway y PostgreSQL. Implementa autenticación y autorización, y la gestión de categorías e inventario especificada en BE-07.
 - No deben agregarse ERP, mapas, geolocalización, notificaciones externas, pagos, reservas independientes ni analítica avanzada salvo que una especificación cambie explícitamente el alcance.
 
 ## Reglas técnicas generales
@@ -45,11 +45,11 @@ No se deben crear APIs, pantallas, entidades o integraciones que no estén respa
 
 ## Estructura del monorepo
 
-- `apps/backend/`: futura aplicación backend; todavía no contiene una aplicación inicializada.
+- `apps/backend/`: API Spring Boot gobernada por `docs/specs/BE-01-api-backend-mvp.md`; comandos y configuración en `apps/backend/README.md`.
 - `apps/frontend/`: aplicación React/Vite con TypeScript; su alcance inicial está especificado en `docs/specs/FE-01-frontend-mvp.md`.
 - `docs/agent-context/`: contexto operativo para agentes.
 - `docs/source/`: documentos originales aportados por el proyecto.
-- `docs/specs/`: especificaciones SDD de funcionalidades futuras.
+- `docs/specs/`: especificaciones SDD (`FE-01` frontend, `BE-01` backend); índice en `docs/specs/README.md`.
 - `.codebase-memory/`: artefactos de indexación; no tratarlo como documentación funcional.
 
 ## Mantenimiento obligatorio del contexto

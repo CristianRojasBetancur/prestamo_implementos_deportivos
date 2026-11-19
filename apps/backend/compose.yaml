@@ -1,0 +1,25 @@
+# PostgreSQL para desarrollo local del backend.
+# Las credenciales se leen de apps/backend/.env (copia de .env.example).
+name: prestamo-implementos
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NOMBRE:?Defina DB_NOMBRE en apps/backend/.env}
+      POSTGRES_USER: ${DB_USUARIO:?Defina DB_USUARIO en apps/backend/.env}
+      POSTGRES_PASSWORD: ${DB_CONTRASENA:?Defina DB_CONTRASENA en apps/backend/.env}
+    ports:
+      - "${DB_PUERTO:-5432}:5432"
+    volumes:
+      - postgres-datos:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  postgres-datos:
