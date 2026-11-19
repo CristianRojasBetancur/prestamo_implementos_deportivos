@@ -3,3 +3,7 @@
 app:
   cors:
     origenes-permitidos: http://localhost:5173
+  jwt:
+    # Secreto exclusivo de pruebas automatizadas; no se usa en ningún entorno real.
+    secreto: secreto-exclusivo-de-pruebas-automatizadas-0123456789
+    expiracion: PT15M

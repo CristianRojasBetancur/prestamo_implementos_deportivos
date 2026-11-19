@@ -70,11 +70,11 @@ Los componentes representan responsabilidades significativas, no entidades aisla
 
 ## Consistencia y transacciones
 
-Registrar un préstamo debe validar usuario y unidades, guardar el préstamo y marcar las unidades como no disponibles dentro de una coordinación transaccional coherente.
+El registro de préstamos valida usuario y unidades, guarda el préstamo y marca las unidades como PRESTADO dentro de una transacción. Bloqueos pesimistas serializan operaciones por solicitante y unidades, mientras un índice único parcial protege RN-06.
 
 Registrar una devolución debe guardar la devolución, registrar una incidencia si aplica, actualizar el estado de la unidad, aplicar la política de sanción y evaluar el cierre del préstamo dentro del mismo límite transaccional cuando corresponda.
 
-La protección contra préstamos simultáneos debe complementarse con restricciones, bloqueos o mecanismos equivalentes de PostgreSQL definidos por la futura implementación y la especificación.
+Las pruebas de concurrencia PostgreSQL/Testcontainers están definidas para el registro de préstamos; su ejecución requiere Docker.
 
 ## Principios de evolución
 

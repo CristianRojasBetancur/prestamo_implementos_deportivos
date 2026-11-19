@@ -7,6 +7,7 @@ API REST del MVP, gobernada por la especificación
 |---|---|
 | Java | 21 (LTS) |
 | Spring Boot | 4.1.2 (Spring MVC, Validation, Data JPA, Security, Actuator) |
+| Documentación API | springdoc-openapi 3.1.1 (OpenAPI 3.1, Swagger UI) |
 | Migraciones | Flyway |
 | Base de datos | PostgreSQL 17 (Docker Compose en local, Testcontainers en pruebas) |
 | Build | Maven 3.9+ |
@@ -98,6 +99,10 @@ docker compose down -v     # elimina también el volumen (base vacía la próxim
 | `DB_USUARIO`, `DB_CONTRASENA` | prod | Sí | Credenciales de la base. |
 | `APP_CORS_ORIGENES` | local, prod | Sí en prod | Orígenes exactos del frontend separados por coma. No admite `*`. Por defecto en local: `http://localhost:5173`. |
 | `APP_ZONA_HORARIA` | todos | No | Zona institucional. Por defecto `America/Bogota`. |
+| `APP_OPENAPI_HABILITADO` | prod | No | `true` para publicar OpenAPI/Swagger en producción. Por defecto `false`. |
+| `APP_JWT_SECRETO` | local, prod | Sí | Secreto HS256 de 32 bytes o más. Ver `.env.example` para generarlo. |
+| `APP_JWT_EXPIRACION` | todos | No | Duración del token (ISO-8601). Por defecto `PT60M`. |
+| `APP_ADMIN_CORREO`, `APP_ADMIN_CONTRASENA`, `APP_ADMIN_IDENTIFICACION` | todos | No | Crea el primer ADMIN al arrancar si no existe (contraseña de 12+ caracteres). |
 | `SERVER_PORT` | todos | No | Por defecto `8080`. |
 | `SPRING_PROFILES_ACTIVE` | — | No | `local` si no se define. |
 
@@ -114,12 +119,16 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 
 | Paquete | Contiene |
 |---|---|
-| `web` | Controladores REST (`*Controlador`) y DTO de solicitud y respuesta. |
-| `web.error` | Manejador global de errores (`@RestControllerAdvice`, Problem Details). |
+| `web` | Controladores REST (`*Controlador`). |
+| `web.dto` | DTO de solicitud y respuesta de cada caso de uso de BE-01. |
+| `web.comun` | Paginación (`ParametrosPagina`, `PaginaRespuesta`) y conversión de fechas. |
+| `web.error` | Manejador global de errores (`ProblemaRespuesta`, `application/problem+json`). |
+| `dominio.error` | Catálogo `CodigoError` y `ExcepcionDominio` (sin dependencias HTTP). |
 | `aplicacion` | Servicios de aplicación (`*Servicio`), interfaces de casos de uso y transacciones. |
-| `dominio` | Entidades, enumeraciones de estado, invariantes y políticas (State, Chain, Strategy). |
-| `persistencia` | Repositorios Spring Data (`*Repositorio`). |
-| `configuracion` | Seguridad, CORS, reloj (`Clock`) y propiedades tipadas. |
+| `dominio` | Entidades JPA, enumeraciones de estado, invariantes y políticas (State, Chain, Strategy). |
+| `persistencia` | Repositorios Spring Data (`*Repositorio`) con las consultas mínimas. |
+| `configuracion` | Cadena de seguridad, CORS, correlación, OpenAPI, reloj (`Clock`) y propiedades tipadas. |
+| `seguridad` | JWT (emisión y validación), hash de contraseñas, principal `UsuarioAutenticado` y revocación. |
 
 ## Endpoints disponibles
 
@@ -144,3 +153,17 @@ estas rutas están disponibles tras integrar ese caso de uso definido en BE-01.
   `V2__crear_tabla_usuario.sql`).
 - Una migración aplicada nunca se edita; cualquier cambio se hace con una
   migración nueva. Hibernate solo valida el esquema (`ddl-auto: validate`).
+- Aplicadas: `V1__linea_base.sql`, `V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql` y `V4__indices_consulta_disponibilidad.sql`.
+- Reversión: forward-only. En local, `docker compose down -v` recrea la base
+  vacía; en entornos compartidos se usa una migración correctiva. Detalle en
+  `docs/agent-context/modelo-datos.md` §6.
+
+## Medición RNF-01 de disponibilidad
+
+Con la API local levantada, ejecute el escenario k6 de 100 usuarios virtuales durante un minuto:
+
+```bash
+k6 run -e BASE_URL=http://localhost:8080 performance/availability.js
+```
+
+El umbral configurado es p95 < 1,5 s y menos de 1 % de respuestas fallidas. Ejecute la medición con datos de volumen representativo y revise el plan con `EXPLAIN (ANALYZE, BUFFERS)` sobre la consulta agregada de `DisponibilidadRepositorio`.
