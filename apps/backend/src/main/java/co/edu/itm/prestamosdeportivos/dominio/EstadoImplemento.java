@@ -11,4 +11,24 @@ public enum EstadoImplemento {
     PRESTADO,
     EN_MANTENIMIENTO,
     DADO_DE_BAJA;
+
+    /** Transiciones válidas por clase de operación; evita restaurar desde un préstamo sin devolución. */
+    public boolean admite(EstadoImplemento destino, EventoEstadoImplemento evento) {
+        if (destino == null || evento == null || destino == this || this == DADO_DE_BAJA) {
+            return false;
+        }
+        return switch (evento) {
+            case ADMINISTRACION -> switch (this) {
+                case DISPONIBLE -> destino == EN_MANTENIMIENTO || destino == DADO_DE_BAJA;
+                case EN_MANTENIMIENTO -> destino == DISPONIBLE || destino == DADO_DE_BAJA;
+                case PRESTADO, DADO_DE_BAJA -> false;
+            };
+            case DEVOLUCION -> this == PRESTADO && destino == DISPONIBLE;
+            case INCIDENCIA -> this == PRESTADO && (destino == EN_MANTENIMIENTO || destino == DADO_DE_BAJA);
+        };
+    }
+
+    public boolean esPrestable() {
+        return this == DISPONIBLE;
+    }
 }

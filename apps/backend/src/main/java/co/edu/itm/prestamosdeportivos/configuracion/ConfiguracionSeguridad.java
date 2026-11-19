@@ -72,6 +72,7 @@ public class ConfiguracionSeguridad {
 
                         // Administración: solo ADMIN.
                         .requestMatchers("/api/v1/categorias/**", "/api/v1/categorias").hasRole(ADMIN)
+                        .requestMatchers("/api/v1/inventory/units", "/api/v1/inventory/units/**").hasRole(ADMIN)
                         .requestMatchers("/api/v1/prestadores", "/api/v1/prestadores/**").hasRole(ADMIN)
                         // La selección de unidades para prestar es operación del PRESTADOR (antes que /implementos/**).
                         .requestMatchers(HttpMethod.GET, "/api/v1/implementos/prestables").hasRole(PRESTADOR)

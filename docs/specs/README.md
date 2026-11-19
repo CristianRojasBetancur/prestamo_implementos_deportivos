@@ -13,5 +13,6 @@ Los documentos de contexto no deben utilizarse como sustituto de una especificac
 | FE-01 | [Aplicación web del MVP](FE-01-frontend-mvp.md) | Aplicación web | Implementada (modo demostración) |
 | BE-01 | [API backend del MVP](BE-01-api-backend-mvp.md) | API backend | Propuesta para revisión del equipo |
 | BE-01-A | [Contratos comunes y formato de errores](BE-01-A-contratos-y-errores.md) | API backend | Implementado |
+| BE-07 | [Categorías e inventario de unidades físicas](BE-07-categorias-e-inventario.md) | API backend | Implementado; integración pendiente de ejecución con Docker |
 
-BE-01 gobierna toda implementación en `apps/backend/`: contratos HTTP/JSON, errores, reglas de negocio, trazabilidad y decisiones sobre ambigüedades del documento fuente.
+BE-01 gobierna toda implementación en `apps/backend/`: contratos HTTP/JSON, errores, reglas de negocio, trazabilidad y decisiones sobre ambigüedades del documento fuente. Una especificación de módulo concreta sus casos de uso y documenta explícitamente cualquier desviación de contrato.

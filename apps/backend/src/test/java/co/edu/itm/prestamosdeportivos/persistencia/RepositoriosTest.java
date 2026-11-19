@@ -15,6 +15,8 @@ import co.edu.itm.prestamosdeportivos.dominio.DetallePrestamo;
 import co.edu.itm.prestamosdeportivos.dominio.Devolucion;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoDetallePrestamo;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoImplemento;
+import co.edu.itm.prestamosdeportivos.dominio.EventoEstadoImplemento;
+import co.edu.itm.prestamosdeportivos.dominio.HistorialEstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoPrestamo;
 import co.edu.itm.prestamosdeportivos.dominio.ImplementoDeportivo;
 import co.edu.itm.prestamosdeportivos.dominio.Incidencia;
@@ -23,6 +25,7 @@ import co.edu.itm.prestamosdeportivos.dominio.Rol;
 import co.edu.itm.prestamosdeportivos.dominio.Sancion;
 import co.edu.itm.prestamosdeportivos.dominio.TipoIncidencia;
 import co.edu.itm.prestamosdeportivos.dominio.Usuario;
+import co.edu.itm.prestamosdeportivos.aplicacion.InventarioServicio;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +52,8 @@ class RepositoriosTest {
     @Autowired private UsuarioRepositorio usuarios;
     @Autowired private CategoriaRepositorio categorias;
     @Autowired private ImplementoDeportivoRepositorio implementos;
+    @Autowired private HistorialEstadoImplementoRepositorio historialEstados;
+    @Autowired private InventarioServicio inventarioServicio;
     @Autowired private PrestamoRepositorio prestamos;
     @Autowired private DetallePrestamoRepositorio detallesPrestamo;
     @Autowired private DevolucionRepositorio devoluciones;
@@ -105,6 +110,27 @@ class RepositoriosTest {
 
         List<ImplementoDeportivo> bloqueados = implementos.bloquearPorIds(List.of(peto.getId(), balon.getId()));
         assertThat(bloqueados).containsExactlyInAnyOrder(balon, peto);
+    }
+
+    @Test
+    @DisplayName("Inventario: q ignora tildes, aplica filtros y mantiene historial de cambios de estado")
+    void filtrosYHistorialDeInventario() {
+        var pagina = inventarioServicio.listar("balón", balon.getCategoria().getId(), EstadoImplemento.DISPONIBLE,
+                org.springframework.data.domain.PageRequest.of(0, 1));
+        assertThat(pagina.getTotalElements()).isEqualTo(1);
+        assertThat(pagina.getContent()).containsExactly(balon);
+
+        EstadoImplemento anterior = balon.getEstado();
+        balon.cambiarEstado(EstadoImplemento.EN_MANTENIMIENTO, EventoEstadoImplemento.ADMINISTRACION);
+        historialEstados.saveAndFlush(new HistorialEstadoImplemento(balon, anterior, EstadoImplemento.EN_MANTENIMIENTO,
+                EventoEstadoImplemento.ADMINISTRACION, "Desgaste"));
+        entityManager.clear();
+
+        assertThat(historialEstados.findAll()).anySatisfy(registro -> {
+            assertThat(registro.getEstadoAnterior()).isEqualTo(EstadoImplemento.DISPONIBLE);
+            assertThat(registro.getEstadoNuevo()).isEqualTo(EstadoImplemento.EN_MANTENIMIENTO);
+            assertThat(registro.getMotivo()).isEqualTo("Desgaste");
+        });
     }
 
     @Test

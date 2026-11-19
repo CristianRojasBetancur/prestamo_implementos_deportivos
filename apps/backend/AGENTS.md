@@ -2,7 +2,7 @@
 
 Estas reglas aplican al trabajo dentro de `apps/backend/` y complementan el `AGENTS.md` de la raíz.
 
-La aplicación está inicializada con Java 21, Spring Boot 4.1, Maven, Flyway y PostgreSQL. La especificación funcional es `docs/specs/BE-01-api-backend-mvp.md`. Mantener sincronizados aquí, en el `AGENTS.md` raíz y en `docs/agent-context/arquitectura-tecnica.md` los comandos, herramientas y convenciones que realmente existan.
+La aplicación está inicializada con Java 21, Spring Boot 4.1, Maven, Flyway y PostgreSQL. La especificación funcional base es `docs/specs/BE-01-api-backend-mvp.md`; BE-07 implementa categorías e inventario con las rutas concretas allí documentadas. Mantener sincronizados aquí, en el `AGENTS.md` raíz y en `docs/agent-context/arquitectura-tecnica.md` los comandos, herramientas y convenciones que realmente existan.
 
 ## Comandos disponibles
 
@@ -21,6 +21,7 @@ Ejecutar desde `apps/backend/` (detalle en `README.md`):
 - El esquema se gestiona solo con migraciones Flyway en `src/main/resources/db/migration` (`V<n>__descripcion.sql`); Hibernate usa `ddl-auto: validate`. No editar migraciones ya aplicadas (estrategia forward-only).
 - El modelo de datos (tablas, constraints, índices, mapeo de enumeraciones y decisiones DM-xx) está en `docs/agent-context/modelo-datos.md`; toda migración que lo cambie debe actualizarlo.
 - Las entidades JPA viven en `dominio` y los repositorios en `persistencia`. Los enums se persisten como `varchar` con el nombre de la constante y un `CHECK`; renombrar una constante exige migración.
+- La gestión de categorías e inventario está en BE-07. Las unidades físicas no se borran; los cambios de estado requieren evento válido y se registran en `historial_estado_implemento` mediante Flyway V3.
 - La seguridad es stateless y deny-by-default; solo son públicas las rutas que BE-01 declara (salud, login, disponibilidad y categorías).
 - Autenticación JWT (paquete `seguridad`): el rol se carga de la base de datos en cada solicitud; nunca se confía en un rol enviado por el cliente ni en el claim `rol`. El principal se obtiene con `@AuthenticationPrincipal UsuarioAutenticado`.
 - Toda ruta nueva debe quedar cubierta por la matriz de `ConfiguracionSeguridad` y por `@PreAuthorize` en su controlador, y agregarse a `SeguridadAutenticacionTest.matriz()`.
