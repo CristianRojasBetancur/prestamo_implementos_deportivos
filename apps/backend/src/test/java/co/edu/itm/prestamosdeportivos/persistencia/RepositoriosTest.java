@@ -52,6 +52,7 @@ class RepositoriosTest {
     @Autowired private UsuarioRepositorio usuarios;
     @Autowired private CategoriaRepositorio categorias;
     @Autowired private ImplementoDeportivoRepositorio implementos;
+    @Autowired private DisponibilidadRepositorio disponibilidades;
     @Autowired private HistorialEstadoImplementoRepositorio historialEstados;
     @Autowired private InventarioServicio inventarioServicio;
     @Autowired private PrestamoRepositorio prestamos;
@@ -131,6 +132,58 @@ class RepositoriosTest {
             assertThat(registro.getEstadoNuevo()).isEqualTo(EstadoImplemento.EN_MANTENIMIENTO);
             assertThat(registro.getMotivo()).isEqualTo("Desgaste");
         });
+    }
+
+    @Test
+    @DisplayName("Disponibilidad: agrega por categoría/nombre, filtra y excluye grupos sin unidades elegibles")
+    void disponibilidadAgregadaYFiltrada() {
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 10,
+                org.springframework.data.domain.Sort.by("nombre").ascending()
+                        .and(org.springframework.data.domain.Sort.by("categoriaNombre").ascending()));
+
+        var todos = disponibilidades.buscarDisponibles(null, null, pageable);
+        assertThat(todos.getTotalElements()).isEqualTo(2);
+        assertThat(todos.getContent()).extracting(DisponibilidadProyeccion::getNombre)
+                .containsExactly("Balón de fútbol", "Petos deportivos");
+
+        var primeraPagina = disponibilidades.buscarDisponibles(null, null,
+                org.springframework.data.domain.PageRequest.of(0, 1, pageable.getSort()));
+        assertThat(primeraPagina.getTotalPages()).isEqualTo(2);
+        assertThat(primeraPagina.getContent()).hasSize(1);
+
+        var porCategoriaYTexto = disponibilidades.buscarDisponibles("fútbol", balon.getCategoria().getId(), pageable);
+        assertThat(porCategoriaYTexto.getTotalElements()).isEqualTo(1);
+        assertThat(porCategoriaYTexto.getContent().getFirst().getUnidadesDisponibles()).isEqualTo(1);
+
+        DetallePrestamo detallePeto = detallesPrestamo
+                .findByPrestamoIdAndEstado(prestamo.getId(), EstadoDetallePrestamo.PENDIENTE_DEVOLUCION).stream()
+                .filter(detalle -> detalle.getImplemento().equals(peto))
+                .findFirst().orElseThrow();
+        incidencias.saveAndFlush(new Incidencia(detallePeto, prestador, TipoIncidencia.OTRA,
+                "Novedad pendiente de resolución", AHORA));
+
+        var conIncidenciaAbierta = disponibilidades.buscarDisponibles(null, balon.getCategoria().getId(), pageable);
+        assertThat(conIncidenciaAbierta.getTotalElements()).isEqualTo(1);
+        assertThat(conIncidenciaAbierta.getContent()).extracting(DisponibilidadProyeccion::getNombre)
+                .containsExactly("Balón de fútbol");
+
+        balon.cambiarEstado(EstadoImplemento.EN_MANTENIMIENTO, EventoEstadoImplemento.ADMINISTRACION);
+        implementos.saveAndFlush(balon);
+        assertThat(disponibilidades.buscarDisponibles(null, balon.getCategoria().getId(), pageable).getContent()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Disponibilidad: préstamo activo y baja no generan disponibilidad pública")
+    void disponibilidadExcluyePrestamoActivoYBaja() {
+        entityManager.createNativeQuery("UPDATE implemento_deportivo SET estado = 'PRESTADO' WHERE id = :id")
+                .setParameter("id", balon.getId()).executeUpdate();
+        entityManager.createNativeQuery("UPDATE implemento_deportivo SET estado = 'DADO_DE_BAJA' WHERE id = :id")
+                .setParameter("id", peto.getId()).executeUpdate();
+
+        var pagina = disponibilidades.buscarDisponibles(null, balon.getCategoria().getId(),
+                org.springframework.data.domain.PageRequest.of(0, 10));
+        assertThat(pagina.getContent()).isEmpty();
+        assertThat(pagina.getTotalElements()).isZero();
     }
 
     @Test

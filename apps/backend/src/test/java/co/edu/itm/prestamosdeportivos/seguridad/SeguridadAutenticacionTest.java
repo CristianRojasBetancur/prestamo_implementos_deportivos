@@ -301,6 +301,7 @@ class SeguridadAutenticacionTest {
         Set<Rol> soloPrestador = Set.of(Rol.PRESTADOR);
         return Stream.of(
                 new Caso("GET", "/api/v1/disponibilidad", Set.of()),
+                new Caso("GET", "/api/v1/availability", Set.of()),
                 new Caso("GET", "/api/v1/categorias", Set.of()),
                 new Caso("GET", "/api/v1/categorias/" + id, soloAdmin),
                 new Caso("POST", "/api/v1/categorias", soloAdmin),

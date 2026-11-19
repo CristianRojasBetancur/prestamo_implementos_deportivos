@@ -141,6 +141,7 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 | `POST /api/v1/auth/login` | Público | Inicio de sesión; devuelve un JWT Bearer. |
 | `GET /api/v1/auth/me` | ADMIN, PRESTADOR | Usuario autenticado y su rol. |
 | `POST /api/v1/auth/logout` | ADMIN, PRESTADOR | Revoca todas las sesiones del usuario. |
+| `GET /api/v1/availability`, `/api/v1/disponibilidad` | Público | Consulta agregada y paginada; no expone códigos ni UUID de unidades. |
 | `GET /v3/api-docs` | Público (local/pruebas) | Documento OpenAPI 3.1. |
 | `GET /swagger-ui.html` | Público (local/pruebas) | Swagger UI para explorar la API. |
 
@@ -156,7 +157,17 @@ Las demás rutas de `/api/v1` exigen un token y el rol de la matriz de BE-01
   `V2__crear_tabla_usuario.sql`).
 - Una migración aplicada nunca se edita; cualquier cambio se hace con una
   migración nueva. Hibernate solo valida el esquema (`ddl-auto: validate`).
-- Aplicadas: `V1__linea_base.sql` y `V2__crear_esquema_mvp.sql` (9 tablas del MVP).
+- Aplicadas: `V1__linea_base.sql`, `V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql` y `V4__indices_consulta_disponibilidad.sql`.
 - Reversión: forward-only. En local, `docker compose down -v` recrea la base
   vacía; en entornos compartidos se usa una migración correctiva. Detalle en
   `docs/agent-context/modelo-datos.md` §6.
+
+## Medición RNF-01 de disponibilidad
+
+Con la API local levantada, ejecute el escenario k6 de 100 usuarios virtuales durante un minuto:
+
+```bash
+k6 run -e BASE_URL=http://localhost:8080 performance/availability.js
+```
+
+El umbral configurado es p95 < 1,5 s y menos de 1 % de respuestas fallidas. Ejecute la medición con datos de volumen representativo y revise el plan con `EXPLAIN (ANALYZE, BUFFERS)` sobre la consulta agregada de `DisponibilidadRepositorio`.
