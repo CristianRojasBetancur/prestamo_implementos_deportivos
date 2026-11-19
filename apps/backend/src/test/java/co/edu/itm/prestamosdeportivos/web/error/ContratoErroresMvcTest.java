@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -81,6 +82,26 @@ class ContratoErroresMvcTest {
                 .addFilters(filtroCorrelacion)
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
+    }
+
+    @Test
+    @WithMockUser(roles = "PRESTADOR")
+    @DisplayName("PRESTADOR no puede modificar unidades del inventario")
+    void prestadorNoAdministraInventario() throws Exception {
+        mvc.perform(patch("/api/v1/inventory/units/" + UUID_VALIDO)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"nombre\":\"Nuevo\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    @DisplayName("USER no puede registrar unidades del inventario")
+    void userNoAdministraInventario() throws Exception {
+        mvc.perform(post("/api/v1/inventory/units")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigoInventario\":\"BAL-1\",\"nombre\":\"Balón\",\"categoriaId\":\""
+                                + UUID_VALIDO + "\"}"))
+                .andExpect(status().isForbidden());
     }
 
     // ---------------------------------------------------------------- 400

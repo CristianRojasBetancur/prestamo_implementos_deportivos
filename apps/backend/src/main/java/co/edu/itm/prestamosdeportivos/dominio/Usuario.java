@@ -77,6 +77,31 @@ public class Usuario extends EntidadBase {
                 Objects.requireNonNull(contrasenaHash, "contrasenaHash"), rol);
     }
 
+    /** Solo PRESTADOR y ADMIN activos inician sesión; USER no tiene acceso en el MVP (BE-01 §5). */
+    public boolean puedeIniciarSesion() {
+        return activo && rol != Rol.USER && contrasenaHash != null;
+    }
+
+    /**
+     * Invalida todos los tokens emitidos hasta ahora: el claim {@code ver} de
+     * esos tokens deja de coincidir con {@link #getVersionCredenciales()}.
+     */
+    public void revocarSesiones() {
+        versionCredenciales++;
+    }
+
+    /** Desactiva la cuenta y revoca sus sesiones (CU-06). El historial se conserva. */
+    public void desactivar() {
+        if (activo) {
+            activo = false;
+            revocarSesiones();
+        }
+    }
+
+    public void activar() {
+        activo = true;
+    }
+
     public String getIdentificacion() {
         return identificacion;
     }

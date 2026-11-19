@@ -1,7 +1,7 @@
 # Modelo de datos y persistencia
 
-Contexto operativo del esquema PostgreSQL del backend. Lo crea la migración
-`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql` y lo
+Contexto operativo del esquema PostgreSQL del backend. Lo crean las migraciones
+`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql` y `V4__indices_consulta_disponibilidad.sql` y lo
 gobierna `docs/specs/BE-01-api-backend-mvp.md` (§6, §7 y §11). Es un documento
 vivo: cualquier migración que cambie tablas, constraints, índices o enumeraciones
 debe actualizarlo.
@@ -16,6 +16,7 @@ Los nombres siguen BE-01 §4.2: español, `snake_case` y singular. La columna
 | `usuario` | `users` | `Usuario` | Solicitantes (`USER`), prestadores y administradores. |
 | `categoria` | `categories` | `Categoria` | Clasificación de implementos. |
 | `implemento_deportivo` | `equipment_units` | `ImplementoDeportivo` | Una fila por unidad física. |
+| `historial_estado_implemento` | — | `HistorialEstadoImplemento` | Auditoría inmutable de estado anterior/nuevo, evento, motivo y fecha de cambio de una unidad. |
 | `prestamo` | `loans` | `Prestamo` | Cabecera del préstamo. |
 | `detalle_prestamo` | `loan_items` | `DetallePrestamo` | Unidad física dentro de un préstamo y su resolución. |
 | `devolucion` | `returns` | `Devolucion` | Registro de una devolución total o parcial. |
@@ -43,6 +44,7 @@ ordinales.
 |---|---|---|
 | `Rol` | `usuario.rol` | `USER`, `PRESTADOR`, `ADMIN` |
 | `EstadoImplemento` | `implemento_deportivo.estado` | `DISPONIBLE`, `PRESTADO`, `EN_MANTENIMIENTO`, `DADO_DE_BAJA` |
+| `EventoEstadoImplemento` | `historial_estado_implemento.evento` | `ADMINISTRACION`, `DEVOLUCION`, `INCIDENCIA` |
 | `EstadoPrestamo` | `prestamo.estado` | `VIGENTE`, `DEVOLUCION_PARCIAL`, `VENCIDO`, `FINALIZADO` |
 | `EstadoDetallePrestamo` | `detalle_prestamo.estado` | `PENDIENTE_DEVOLUCION`, `DEVUELTO`, `RESUELTO_POR_INCIDENCIA` |
 | `CondicionDevolucion` | `detalle_prestamo.condicion_recibida`, `detalle_devolucion.condicion` | `BUENO`, `CON_NOVEDAD` |
@@ -74,6 +76,8 @@ Nunca se renombra una constante Java sin esa migración.
 | Credenciales por rol | `ck_usuario_credenciales`: `USER` sin contraseña; `PRESTADOR`/`ADMIN` con correo y contraseña. |
 | Unicidad sin distinguir mayúsculas | `uq_usuario_correo (lower(correo))` y `uq_categoria_nombre (lower(nombre))`. |
 | Unicidad exacta | `uq_usuario_identificacion`, `uq_implemento_codigo_inventario` y los códigos legibles. |
+| Auditoría de estados de unidad | `historial_estado_implemento` referencia la unidad sin cascada y conserva estado anterior/nuevo, evento y motivo. |
+| Consulta pública de disponibilidad | `ix_implemento_catalogo_activo` cubre categoría/nombre/estado de unidades no retiradas; `ix_incidencia_registrada_implemento` acelera la exclusión de incidencias abiertas. |
 | RN-02: plazo coherente | `ck_prestamo_fechas`: `fecha_limite_devolucion > fecha_prestamo`. |
 | RN-07: finalización coherente | `ck_prestamo_finalizacion`: `estado = FINALIZADO` si y solo si hay `fecha_finalizacion`. |
 | Resolución coherente del detalle | `ck_detalle_prestamo_resolucion`: pendiente sin fecha ni condición; `DEVUELTO` con ambas; `RESUELTO_POR_INCIDENCIA` con fecha y sin condición. |

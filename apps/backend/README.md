@@ -12,9 +12,7 @@ API REST del MVP, gobernada por la especificación
 | Base de datos | PostgreSQL 17 (Docker Compose en local, Testcontainers en pruebas) |
 | Build | Maven 3.9+ |
 
-> Estado: base técnica y esquema de persistencia del MVP (V2) inicializados.
-> Todavía no hay casos de uso de negocio, endpoints de dominio ni datos de
-> demostración. Modelo de datos: [`docs/agent-context/modelo-datos.md`](../../docs/agent-context/modelo-datos.md).
+> Estado: API inicializada con autenticación, gestión de categorías e inventario, disponibilidad, y consulta de situación/elegibilidad de usuarios. El registro transaccional de préstamos y otros casos de ciclo de vida siguen pendientes. Modelo de datos: [`docs/agent-context/modelo-datos.md`](../../docs/agent-context/modelo-datos.md).
 
 ## Requisitos
 
@@ -102,6 +100,9 @@ docker compose down -v     # elimina también el volumen (base vacía la próxim
 | `APP_CORS_ORIGENES` | local, prod | Sí en prod | Orígenes exactos del frontend separados por coma. No admite `*`. Por defecto en local: `http://localhost:5173`. |
 | `APP_ZONA_HORARIA` | todos | No | Zona institucional. Por defecto `America/Bogota`. |
 | `APP_OPENAPI_HABILITADO` | prod | No | `true` para publicar OpenAPI/Swagger en producción. Por defecto `false`. |
+| `APP_JWT_SECRETO` | local, prod | Sí | Secreto HS256 de 32 bytes o más. Ver `.env.example` para generarlo. |
+| `APP_JWT_EXPIRACION` | todos | No | Duración del token (ISO-8601). Por defecto `PT60M`. |
+| `APP_ADMIN_CORREO`, `APP_ADMIN_CONTRASENA`, `APP_ADMIN_IDENTIFICACION` | todos | No | Crea el primer ADMIN al arrancar si no existe (contraseña de 12+ caracteres). |
 | `SERVER_PORT` | todos | No | Por defecto `8080`. |
 | `SPRING_PROFILES_ACTIVE` | — | No | `local` si no se define. |
 
@@ -126,7 +127,8 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 | `aplicacion` | Servicios de aplicación (`*Servicio`), interfaces de casos de uso y transacciones. |
 | `dominio` | Entidades JPA, enumeraciones de estado, invariantes y políticas (State, Chain, Strategy). |
 | `persistencia` | Repositorios Spring Data (`*Repositorio`) con las consultas mínimas. |
-| `configuracion` | Seguridad, CORS, reloj (`Clock`) y propiedades tipadas. |
+| `configuracion` | Cadena de seguridad, CORS, correlación, OpenAPI, reloj (`Clock`) y propiedades tipadas. |
+| `seguridad` | JWT (emisión y validación), hash de contraseñas, principal `UsuarioAutenticado` y revocación. |
 
 ## Endpoints disponibles
 
@@ -134,11 +136,16 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 |---|---|---|
 | `GET /actuator/health` | Público | Estado de la aplicación y de la base de datos. |
 | `GET /actuator/health/liveness`, `/readiness` | Público | Sondas para el despliegue. |
+| `POST /api/v1/auth/login` | Público | Inicio de sesión; devuelve un JWT Bearer. |
+| `GET /api/v1/auth/me` | ADMIN, PRESTADOR | Usuario autenticado y su rol. |
+| `POST /api/v1/auth/logout` | ADMIN, PRESTADOR | Revoca todas las sesiones del usuario. |
+| `GET /api/v1/availability`, `/api/v1/disponibilidad` | Público | Consulta agregada y paginada; no expone códigos ni UUID de unidades. |
+| `GET /api/v1/usuarios/{id}/situacion`, `/api/v1/users/{userId}/loan-situation` | PRESTADOR | Consulta informativa de elegibilidad; valida 4 unidades, sanciones, vencidos y estado. |
 | `GET /v3/api-docs` | Público (local/pruebas) | Documento OpenAPI 3.1. |
 | `GET /swagger-ui.html` | Público (local/pruebas) | Swagger UI para explorar la API. |
 
-Cualquier otra ruta responde `401` mientras no se implemente la autenticación
-(BE-01 §5). Todas las respuestas de error usan `application/problem+json` con un
+Las demás rutas de `/api/v1` exigen un token y el rol de la matriz de BE-01
+§3.2: sin token responden `401` y con un rol no autorizado, `403`. Todas las respuestas de error usan `application/problem+json` con un
 `codigo` estable e incluyen la cabecera `X-Correlation-Id`; el formato está en
 [`docs/specs/BE-01-A-contratos-y-errores.md`](../../docs/specs/BE-01-A-contratos-y-errores.md).
 
@@ -149,7 +156,17 @@ Cualquier otra ruta responde `401` mientras no se implemente la autenticación
   `V2__crear_tabla_usuario.sql`).
 - Una migración aplicada nunca se edita; cualquier cambio se hace con una
   migración nueva. Hibernate solo valida el esquema (`ddl-auto: validate`).
-- Aplicadas: `V1__linea_base.sql` y `V2__crear_esquema_mvp.sql` (9 tablas del MVP).
+- Aplicadas: `V1__linea_base.sql`, `V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql` y `V4__indices_consulta_disponibilidad.sql`.
 - Reversión: forward-only. En local, `docker compose down -v` recrea la base
   vacía; en entornos compartidos se usa una migración correctiva. Detalle en
   `docs/agent-context/modelo-datos.md` §6.
+
+## Medición RNF-01 de disponibilidad
+
+Con la API local levantada, ejecute el escenario k6 de 100 usuarios virtuales durante un minuto:
+
+```bash
+k6 run -e BASE_URL=http://localhost:8080 performance/availability.js
+```
+
+El umbral configurado es p95 < 1,5 s y menos de 1 % de respuestas fallidas. Ejecute la medición con datos de volumen representativo y revise el plan con `EXPLAIN (ANALYZE, BUFFERS)` sobre la consulta agregada de `DisponibilidadRepositorio`.

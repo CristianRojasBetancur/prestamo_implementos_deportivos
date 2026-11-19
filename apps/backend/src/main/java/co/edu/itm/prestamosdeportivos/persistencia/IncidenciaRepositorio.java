@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import co.edu.itm.prestamosdeportivos.dominio.Incidencia;
+import co.edu.itm.prestamosdeportivos.dominio.EstadoIncidencia;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface IncidenciaRepositorio extends JpaRepository<Incidencia, UUID> {
@@ -14,4 +15,6 @@ public interface IncidenciaRepositorio extends JpaRepository<Incidencia, UUID> {
     List<Incidencia> findByPrestamoIdOrderByFechaRegistroDesc(UUID prestamoId);
 
     List<Incidencia> findByImplementoIdOrderByFechaRegistroDesc(UUID implementoId);
+
+    boolean existsByImplementoIdAndEstado(UUID implementoId, EstadoIncidencia estado);
 }

@@ -30,7 +30,7 @@ No se deben crear APIs, pantallas, entidades o integraciones que no estén respa
 - El MVP contempla autenticación, autorización por rol, prestadores, inventario, préstamos, devoluciones e incidencias.
 - Los actores son Usuario, Administrador y Prestador.
 - La arquitectura de referencia contiene aplicación web, API backend y PostgreSQL.
-- Las tecnologías de referencia son React/Vite, Java/Spring Boot y PostgreSQL. `apps/frontend/` está inicializado con React, Vite y TypeScript; `apps/backend/` está inicializado con Java 21, Spring Boot 4.1, Maven, Flyway y PostgreSQL, sin casos de uso de negocio todavía.
+- Las tecnologías de referencia son React/Vite, Java/Spring Boot y PostgreSQL. `apps/frontend/` está inicializado con React, Vite y TypeScript; `apps/backend/` está inicializado con Java 21, Spring Boot 4.1, Maven, Flyway y PostgreSQL. El backend implementa autenticación y autorización, categorías e inventario (BE-07), consulta pública de disponibilidad (BE-08) y la consulta de elegibilidad/situación de usuario con Chain of Responsibility (BE-09). El registro transaccional de préstamos sigue pendiente de BE-10.
 - No deben agregarse ERP, mapas, geolocalización, notificaciones externas, pagos, reservas independientes ni analítica avanzada salvo que una especificación cambie explícitamente el alcance.
 
 ## Reglas técnicas generales

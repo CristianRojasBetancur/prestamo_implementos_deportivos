@@ -2,6 +2,9 @@ package co.edu.itm.prestamosdeportivos.dominio;
 
 import java.util.Objects;
 
+import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
+import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,8 +17,9 @@ import jakarta.persistence.Version;
 
 /**
  * Unidad física del inventario (una fila por unidad). El comportamiento por
- * estado (patrón State) se incorpora con los casos de uso de inventario y
- * préstamo. {@code version} protege la edición concurrente (BE-01 §11).
+ * estado se valida con la política State de {@link EstadoImplemento} y
+ * {@link EventoEstadoImplemento}. {@code version} protege la edición concurrente
+ * (BE-01 §11).
  */
 @Entity
 @Table(name = "implemento_deportivo")
@@ -77,5 +81,23 @@ public class ImplementoDeportivo extends EntidadBase {
 
     public Long getVersion() {
         return version;
+    }
+
+    public void actualizar(String codigoInventario, String nombre, String descripcion, Categoria categoria) {
+        this.codigoInventario = Objects.requireNonNull(codigoInventario, "codigoInventario");
+        this.nombre = Objects.requireNonNull(nombre, "nombre");
+        this.descripcion = descripcion;
+        this.categoria = Objects.requireNonNull(categoria, "categoria");
+    }
+
+    public void cambiarEstado(EstadoImplemento nuevoEstado, EventoEstadoImplemento evento) {
+        if (!estado.admite(nuevoEstado, evento)) {
+            throw new ExcepcionDominio(CodigoError.TRANSICION_INVALIDA);
+        }
+        estado = nuevoEstado;
+    }
+
+    public boolean esPrestable() {
+        return estado.esPrestable();
     }
 }

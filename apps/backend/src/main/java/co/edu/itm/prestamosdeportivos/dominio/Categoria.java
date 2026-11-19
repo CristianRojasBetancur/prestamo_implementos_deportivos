@@ -2,6 +2,9 @@ package co.edu.itm.prestamosdeportivos.dominio;
 
 import java.util.Objects;
 
+import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
+import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -39,5 +42,17 @@ public class Categoria extends EntidadBase {
 
     public boolean isActiva() {
         return activa;
+    }
+
+    public void actualizar(String nombre, String descripcion, boolean activa) {
+        this.nombre = Objects.requireNonNull(nombre, "nombre");
+        this.descripcion = descripcion;
+        this.activa = activa;
+    }
+
+    public void exigirActivaParaNuevaUnidad() {
+        if (!activa) {
+            throw new ExcepcionDominio(CodigoError.CATEGORIA_INACTIVA);
+        }
     }
 }

@@ -16,4 +16,8 @@ public interface CategoriaRepositorio extends JpaRepository<Categoria, UUID> {
     Optional<Categoria> buscarPorNombre(@Param("nombre") String nombre);
 
     List<Categoria> findByActivaTrueOrderByNombreAsc();
+
+    boolean existsByNombreIgnoreCaseAndIdNot(String nombre, UUID id);
+
+    boolean existsByNombreIgnoreCase(String nombre);
 }

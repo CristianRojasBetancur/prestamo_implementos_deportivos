@@ -12,3 +12,6 @@ spring:
 app:
   cors:
     origenes-permitidos: ${APP_CORS_ORIGENES:http://localhost:5173}
+  jwt:
+    # Obligatorio: mínimo 32 bytes. Ver .env.example para generarlo.
+    secreto: ${APP_JWT_SECRETO}
