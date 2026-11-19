@@ -30,8 +30,9 @@ API. Contiene la base técnica: perfiles `local`, `test` y `prod`; migraciones
 Flyway; PostgreSQL 17 local con Docker Compose y Testcontainers en pruebas;
 seguridad stateless deny-by-default; CORS por variable de entorno; y
 `/actuator/health` público. El backend implementa autenticación JWT, gestión de
-prestadores, elegibilidad, préstamos, consultas y devoluciones BE-12, incluyendo
-la coordinación transaccional con inventario, incidencias y sanciones. Los
+prestadores, elegibilidad, préstamos, consultas, devoluciones BE-12 y sanciones
+por retraso BE-13, incluyendo la coordinación transaccional con inventario,
+incidencias y sanciones. Los
 comandos están en `apps/backend/README.md`.
 
 ## Componentes de referencia

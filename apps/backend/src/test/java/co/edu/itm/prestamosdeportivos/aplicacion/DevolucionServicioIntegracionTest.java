@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.UUID;
 
 import co.edu.itm.prestamosdeportivos.ContenedoresPrueba;
+import co.edu.itm.prestamosdeportivos.aplicacion.sanciones.ContextoSancion;
+import co.edu.itm.prestamosdeportivos.aplicacion.sanciones.PoliticaSancion;
+import co.edu.itm.prestamosdeportivos.aplicacion.sanciones.ResultadoSancion;
 import co.edu.itm.prestamosdeportivos.dominio.Categoria;
 import co.edu.itm.prestamosdeportivos.dominio.CondicionDevolucion;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoDetallePrestamo;
@@ -38,7 +41,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -51,7 +56,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(ContenedoresPrueba.class)
+@Import({ ContenedoresPrueba.class, DevolucionServicioIntegracionTest.FalloPoliticaConfig.class })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DevolucionServicioIntegracionTest {
 
@@ -108,7 +113,32 @@ class DevolucionServicioIntegracionTest {
         assertThat(implementos.findById(f.unidades().get(0).getId()).orElseThrow().getEstado()).isEqualTo(EstadoImplemento.DISPONIBLE);
         assertThat(implementos.findById(f.unidades().get(1).getId()).orElseThrow().getEstado()).isEqualTo(EstadoImplemento.EN_MANTENIMIENTO);
         assertThat(incidencias.findByPrestamoIdOrderByFechaRegistroDesc(prestamo.id())).hasSize(1);
-        assertThat(sanciones.findByDevolucionId(respuesta.id())).isPresent();
+        var sancion = sanciones.findByDevolucionId(respuesta.id()).orElseThrow();
+        assertThat(sancion.getMinutosRetraso()).isGreaterThanOrEqualTo(60);
+        assertThat(sancion.getFechaFin()).isEqualTo(sancion.getFechaInicio().plusSeconds(2 * 24 * 60 * 60));
+        assertThat(usuarios.findById(f.usuario().getId()).orElseThrow().getSuspendidoHasta())
+                .isEqualTo(sancion.getFechaFin());
+    }
+
+    @Test
+    @DisplayName("RN-03: devolución tardía justificada no crea sanción ni suspensión")
+    void devolucionTardiaJustificadaNoSanciona() {
+        var f = fixture(1);
+        var prestamo = prestamoServicio.registrar(f.usuario().getId(), List.of(f.unidades().get(0).getId()), f.operador());
+        Instant limite = Instant.now().minusSeconds(3600);
+        Instant inicio = limite.minusSeconds(1);
+        transacciones.executeWithoutResult(status -> entityManager.createNativeQuery(
+                "update prestamo set fecha_prestamo = :inicio, fecha_limite_devolucion = :limite where id = :id")
+                .setParameter("inicio", inicio).setParameter("limite", limite).setParameter("id", prestamo.id()).executeUpdate());
+        entityManager.clear();
+
+        var respuesta = devolucionServicio.registrar(prestamo.id(), new RegistrarDevolucionSolicitud(List.of(
+                item(f.unidades().get(0), CondicionDevolucion.BUENO, null)), true,
+                "Se presentó una situación institucional.", null), f.operador());
+
+        assertThat(respuesta.sancion()).isNull();
+        assertThat(sanciones.findByDevolucionId(respuesta.id())).isEmpty();
+        assertThat(usuarios.findById(f.usuario().getId()).orElseThrow().getSuspendidoHasta()).isNull();
     }
 
     @Test
@@ -126,6 +156,26 @@ class DevolucionServicioIntegracionTest {
         assertThat(devoluciones.count()).isEqualTo(devolucionesIniciales);
         assertThat(implementos.findById(f.unidades().get(0).getId()).orElseThrow().getEstado()).isEqualTo(EstadoImplemento.PRESTADO);
         assertThat(prestamos.findById(prestamo.id()).orElseThrow().getEstado()).isEqualTo(EstadoPrestamo.VIGENTE);
+    }
+
+    @Test
+    @DisplayName("RN-03: un fallo de la política revierte toda la devolución")
+    void falloDePoliticaRevierteDevolucionYEstadoDeUnidad() {
+        var f = fixture(1);
+        var prestamo = prestamoServicio.registrar(f.usuario().getId(), List.of(f.unidades().get(0).getId()), f.operador());
+
+        assertThatThrownBy(() -> devolucionServicio.registrar(prestamo.id(), new RegistrarDevolucionSolicitud(
+                List.of(item(f.unidades().get(0), CondicionDevolucion.BUENO, null)), false, null,
+                "FORZAR_FALLO_POLITICA"), f.operador()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Fallo controlado de la política de sanción");
+
+        assertThat(devoluciones.findById(prestamo.id())).isEmpty();
+        assertThat(implementos.findById(f.unidades().get(0).getId()).orElseThrow().getEstado())
+                .isEqualTo(EstadoImplemento.PRESTADO);
+        assertThat(prestamos.findById(prestamo.id()).orElseThrow().getEstado())
+                .isEqualTo(EstadoPrestamo.VIGENTE);
+        assertThat(sanciones.findByUsuarioIdOrderByFechaInicioDesc(f.usuario().getId())).isEmpty();
     }
 
     @Test
@@ -175,5 +225,23 @@ class DevolucionServicioIntegracionTest {
     }
 
     private record Fixture(Usuario usuario, List<ImplementoDeportivo> unidades, UsuarioAutenticado operador) {
+    }
+
+    @TestConfiguration(proxyBeanMethods = false)
+    static class FalloPoliticaConfig {
+        @Bean
+        PoliticaSancion politicaQueFalla() {
+            return new PoliticaSancion() {
+                @Override
+                public boolean aplica(ContextoSancion contexto) {
+                    return "FORZAR_FALLO_POLITICA".equals(contexto.devolucion().getObservaciones());
+                }
+
+                @Override
+                public java.util.Optional<ResultadoSancion> calcular(ContextoSancion contexto) {
+                    throw new IllegalStateException("Fallo controlado de la política de sanción");
+                }
+            };
+        }
     }
 }

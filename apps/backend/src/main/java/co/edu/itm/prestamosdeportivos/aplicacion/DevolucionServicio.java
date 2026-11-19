@@ -13,7 +13,6 @@ import static co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaPrest
 import static co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaUsuario;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,6 +54,8 @@ import co.edu.itm.prestamosdeportivos.persistencia.PrestamoRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.SancionRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.UsuarioRepositorio;
 import co.edu.itm.prestamosdeportivos.seguridad.UsuarioAutenticado;
+import co.edu.itm.prestamosdeportivos.aplicacion.sanciones.ContextoSancion;
+import co.edu.itm.prestamosdeportivos.aplicacion.sanciones.PoliticaSancion;
 import co.edu.itm.prestamosdeportivos.web.comun.ConversorFechas;
 import co.edu.itm.prestamosdeportivos.web.comun.PaginaRespuesta;
 import co.edu.itm.prestamosdeportivos.web.comun.ParametrosPagina;
@@ -78,11 +79,13 @@ public class DevolucionServicio {
     private final UsuarioRepositorio usuarios;
     private final ConversorFechas fechas;
     private final Clock reloj;
+    private final List<PoliticaSancion> politicasSancion;
 
     public DevolucionServicio(DevolucionRepositorio devoluciones, PrestamoRepositorio prestamos,
             ImplementoDeportivoRepositorio implementos, IncidenciaRepositorio incidencias,
             SancionRepositorio sanciones, HistorialEstadoImplementoRepositorio historial,
-            UsuarioRepositorio usuarios, ConversorFechas fechas, Clock reloj) {
+            UsuarioRepositorio usuarios, ConversorFechas fechas, Clock reloj,
+            List<PoliticaSancion> politicasSancion) {
         this.devoluciones = devoluciones;
         this.prestamos = prestamos;
         this.implementos = implementos;
@@ -92,6 +95,7 @@ public class DevolucionServicio {
         this.usuarios = usuarios;
         this.fechas = fechas;
         this.reloj = reloj;
+        this.politicasSancion = List.copyOf(politicasSancion);
     }
 
     @Transactional
@@ -185,7 +189,7 @@ public class DevolucionServicio {
         prestamo.actualizarEstadoTrasDevolucion(ahora);
         prestamos.saveAndFlush(prestamo);
 
-        Sancion sancion = crearSancionSiAplica(prestamo, devolucion, ahora, retrasoJustificado);
+        Sancion sancion = crearSancionSiAplica(prestamo, devolucion, ahora);
         if (sancion != null) {
             sanciones.saveAndFlush(sancion);
             prestamo.getUsuario().extenderSuspensionHasta(sancion.getFechaFin());
@@ -231,16 +235,16 @@ public class DevolucionServicio {
         return respuesta(devolucion, sanciones.findByDevolucionId(id).orElse(null));
     }
 
-    private Sancion crearSancionSiAplica(Prestamo prestamo, Devolucion devolucion, Instant ahora,
-            boolean retrasoJustificado) {
-        if (!ahora.isAfter(prestamo.getFechaLimiteDevolucion()) || retrasoJustificado) {
-            return null;
-        }
-        long minutosRetraso = Math.max(1, Duration.between(prestamo.getFechaLimiteDevolucion(), ahora).toMinutes());
-        long minutosSancion = Math.max(Duration.ofDays(2).toMinutes(), minutosRetraso * 2);
-        return new Sancion(prestamo.getUsuario(), prestamo, devolucion,
-                "Devolución tardía sin justificación", minutosRetraso, ahora,
-                ahora.plus(Duration.ofMinutes(minutosSancion)), null);
+    private Sancion crearSancionSiAplica(Prestamo prestamo, Devolucion devolucion, Instant ahora) {
+        ContextoSancion contexto = new ContextoSancion(prestamo, devolucion, ahora);
+        return politicasSancion.stream()
+                .filter(politica -> politica.aplica(contexto))
+                .findFirst()
+                .flatMap(politica -> politica.calcular(contexto))
+                .map(resultado -> new Sancion(prestamo.getUsuario(), prestamo, devolucion,
+                        "Devolución tardía sin justificación", resultado.minutosRetraso(), ahora,
+                        ahora.plus(resultado.duracion()), null))
+                .orElse(null);
     }
 
     private Incidencia crearIncidencia(IncidenciaEnDevolucionSolicitud solicitud, DetallePrestamo detalle,
