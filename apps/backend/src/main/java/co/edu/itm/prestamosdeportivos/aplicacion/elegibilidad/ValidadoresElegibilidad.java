@@ -2,16 +2,16 @@ package co.edu.itm.prestamosdeportivos.aplicacion.elegibilidad;
 
 import java.time.Duration;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.List;
 import java.util.UUID;
-import co.edu.itm.prestamosdeportivos.dominio.EstadoDetallePrestamo;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoImplemento;
-import co.edu.itm.prestamosdeportivos.dominio.EstadoIncidencia;
 import co.edu.itm.prestamosdeportivos.dominio.Rol;
 import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
-import co.edu.itm.prestamosdeportivos.persistencia.DetallePrestamoRepositorio;
+import co.edu.itm.prestamosdeportivos.persistencia.DisponibilidadUnidad;
 import co.edu.itm.prestamosdeportivos.persistencia.ImplementoDeportivoRepositorio;
-import co.edu.itm.prestamosdeportivos.persistencia.IncidenciaRepositorio;
 import org.springframework.stereotype.Component;
 
 /** Validadores concretos de la cadena. */
@@ -50,9 +50,21 @@ public final class ValidadoresElegibilidad {
         public void validar(ContextoElegibilidad c, ResultadoElegibilidad r){if(c.fechaPrestamo()==null&&c.fechaLimite()==null)return;if(c.fechaPrestamo()==null||c.fechaLimite()==null||c.fechaPrestamo().isAfter(c.ahora())||!c.fechaLimite().equals(c.fechaPrestamo().plus(Duration.ofHours(24))))r.bloquear(CodigoError.VALIDACION_FALLIDA,"El préstamo debe durar como máximo 24 horas desde su inicio.","fechaLimiteDevolucion");}
     }
     @Component public static class Disponibilidad implements ValidadorElegibilidad {
-        private final ImplementoDeportivoRepositorio implementos; private final DetallePrestamoRepositorio detalles; private final IncidenciaRepositorio incidencias;
-        public Disponibilidad(ImplementoDeportivoRepositorio i,DetallePrestamoRepositorio d,IncidenciaRepositorio x){implementos=i;detalles=d;incidencias=x;}
+        private final ImplementoDeportivoRepositorio implementos;
+        public Disponibilidad(ImplementoDeportivoRepositorio i){implementos=i;}
         public int orden(){return 70;}
-        public void validar(ContextoElegibilidad c, ResultadoElegibilidad r){if(c.implementoIds()==null)return;for(UUID id:c.implementoIds()){var item=implementos.findById(id);if(item.isEmpty()){r.bloquear(CodigoError.RECURSO_NO_ENCONTRADO,"No existe la unidad solicitada: "+id,"implementoIds");continue;}if(item.get().getEstado()!=EstadoImplemento.DISPONIBLE||detalles.existsByImplementoIdAndEstado(id,EstadoDetallePrestamo.PENDIENTE_DEVOLUCION)||incidencias.existsByImplementoIdAndEstado(id,EstadoIncidencia.REGISTRADA))r.bloquear(CodigoError.IMPLEMENTO_NO_DISPONIBLE,"La unidad "+item.get().getCodigoInventario()+" no está disponible.","implementoIds");}}
+        public void validar(ContextoElegibilidad c, ResultadoElegibilidad r){
+            if(c.implementoIds()==null||c.implementoIds().isEmpty())return;
+            Map<UUID, DisponibilidadUnidad> porId=implementos.verificarDisponibilidad(c.implementoIds()).stream()
+                    .collect(Collectors.toMap(DisponibilidadUnidad::getId,Function.identity()));
+            for(UUID id:c.implementoIds()){
+                var item=porId.get(id);
+                if(item==null){r.bloquear(CodigoError.RECURSO_NO_ENCONTRADO,"No existe la unidad solicitada: "+id,"implementoIds");continue;}
+                boolean noDisponible=!EstadoImplemento.DISPONIBLE.name().equals(item.getEstado())
+                        ||Boolean.TRUE.equals(item.getPendienteDevolucion())
+                        ||Boolean.TRUE.equals(item.getIncidenciaRegistrada());
+                if(noDisponible)r.bloquear(CodigoError.IMPLEMENTO_NO_DISPONIBLE,"La unidad "+item.getCodigoInventario()+" no está disponible.","implementoIds");
+            }
+        }
     }
 }

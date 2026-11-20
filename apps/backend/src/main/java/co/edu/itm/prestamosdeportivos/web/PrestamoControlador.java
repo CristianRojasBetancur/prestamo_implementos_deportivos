@@ -13,6 +13,7 @@ import co.edu.itm.prestamosdeportivos.web.comun.PaginaRespuesta;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,9 +24,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 /** CU-14: entrega de unidades al solicitante. */
 @RestController
+@Validated
 @RequestMapping("/api/v1")
 public class PrestamoControlador {
     private final PrestamoServicio servicio;
@@ -48,7 +51,7 @@ public class PrestamoControlador {
             @RequestParam(required = false) String identificacion,
             @RequestParam(required = false) OffsetDateTime desde,
             @RequestParam(required = false) OffsetDateTime hasta,
-            @RequestParam(required = false, name = "q") String texto) {
+            @RequestParam(required = false, name = "q") @Size(max = 80, message = "no puede superar 80 caracteres") String texto) {
         return consulta.listar(pagina, tamano, orden, estado, usuarioId, identificacion, desde, hasta, texto);
     }
 

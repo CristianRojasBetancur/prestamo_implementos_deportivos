@@ -16,6 +16,7 @@ import co.edu.itm.prestamosdeportivos.web.dto.GestionInventarioDto.UnidadRespues
 import co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaCategoria;
 import co.edu.itm.prestamosdeportivos.seguridad.UsuarioAutenticado;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -30,8 +31,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
+@Validated
 @RequestMapping("/api/v1/inventory/units")
 @PreAuthorize("hasRole('ADMIN')")
 public class InventarioControlador {
@@ -51,7 +54,7 @@ public class InventarioControlador {
     }
 
     @GetMapping
-    public PaginaRespuesta<UnidadRespuesta> listar(@RequestParam(required = false) String q,
+    public PaginaRespuesta<UnidadRespuesta> listar(@RequestParam(required = false) @Size(max = 80, message = "no puede superar 80 caracteres") String q,
             @RequestParam(required = false) UUID categoriaId,
             @RequestParam(required = false) EstadoImplemento estado,
             @Valid @ParameterObject ParametrosPagina pagina) {

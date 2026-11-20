@@ -16,6 +16,7 @@ import co.edu.itm.prestamosdeportivos.web.dto.IncidenciaDto.IncidenciaRespuesta;
 import co.edu.itm.prestamosdeportivos.web.dto.IncidenciaDto.IncidenciaResumenRespuesta;
 import co.edu.itm.prestamosdeportivos.web.dto.IncidenciaDto.RegistrarIncidenciaSolicitud;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,9 +29,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 /** CU-18 y CU-19: registro, consulta y resolución administrativa de incidencias. */
 @RestController
+@Validated
 @RequestMapping("/api/v1")
 public class IncidenciaControlador {
 
@@ -60,7 +63,7 @@ public class IncidenciaControlador {
             @RequestParam(required = false) EstadoIncidencia estado,
             @RequestParam(required = false) OffsetDateTime desde,
             @RequestParam(required = false) OffsetDateTime hasta,
-            @RequestParam(required = false, name = "q") String texto,
+            @RequestParam(required = false, name = "q") @Size(max = 80, message = "no puede superar 80 caracteres") String texto,
             @Valid @ParameterObject ParametrosPagina pagina) {
         return servicio.listar(new IncidenciaFiltros(prestamoId, usuarioId, implementoId, tipo, estado,
                 desde == null ? null : desde.toInstant(), hasta == null ? null : hasta.toInstant(), texto), pagina);

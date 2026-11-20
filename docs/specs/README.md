@@ -16,6 +16,7 @@ Los documentos de contexto no deben utilizarse como sustituto de una especificac
 | BE-13 | [Sanciones por retraso mediante Strategy](BE-13-sanciones-por-retraso.md) | API backend | Implementada |
 | BE-14 | [Incidencias y resolución administrativa](BE-14-incidencias.md) | API backend | Implementada |
 | BE-15 | [Actualización de disponibilidad mediante Mediator](BE-15-actualizacion-disponibilidad-mediator.md) | API backend | Implementada |
+| BE-18 | [Rendimiento, observabilidad y seguridad](BE-18-rendimiento-observabilidad-seguridad.md) | API backend | Implementación en esta rama |
 
 BE-01 define los contratos comunes de `apps/backend/`. Las especificaciones de
 módulo concretan cada caso de uso y documentan de forma explícita cualquier

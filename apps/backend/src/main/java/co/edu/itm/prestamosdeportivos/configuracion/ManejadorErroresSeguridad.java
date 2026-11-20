@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.slf4j.MDC;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -57,7 +58,12 @@ public class ManejadorErroresSeguridad implements AuthenticationEntryPoint, Acce
         problem.setInstance(java.net.URI.create(request.getRequestURI()));
         problem.setProperty("codigo", codigo);
         problem.setProperty("timestamp", OffsetDateTime.ofInstant(reloj.instant(), zonaHoraria));
-        problem.setProperty("correlacionId", UUID.randomUUID());
+        String correlacion = MDC.get(FiltroCorrelacion.CLAVE_MDC);
+        if (correlacion == null || correlacion.isBlank()) {
+            correlacion = UUID.randomUUID().toString();
+        }
+        response.setHeader(FiltroCorrelacion.CABECERA, correlacion);
+        problem.setProperty("correlacionId", correlacion);
         response.setStatus(estado.value());
         response.setContentType("application/problem+json");
         objectMapper.writeValue(response.getOutputStream(), problem);

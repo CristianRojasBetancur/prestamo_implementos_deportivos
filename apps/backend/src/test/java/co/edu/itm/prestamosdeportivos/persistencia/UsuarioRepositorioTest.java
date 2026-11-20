@@ -18,7 +18,7 @@ import co.edu.itm.prestamosdeportivos.ContenedoresPrueba;
 import co.edu.itm.prestamosdeportivos.dominio.Rol;
 import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 
-@DataJpaTest
+@DataJpaTest(showSql = false)
 @ActiveProfiles("test")
 @Import(ContenedoresPrueba.class)
 @Transactional

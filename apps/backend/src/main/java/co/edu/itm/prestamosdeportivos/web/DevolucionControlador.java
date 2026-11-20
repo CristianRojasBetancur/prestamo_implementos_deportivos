@@ -16,6 +16,7 @@ import co.edu.itm.prestamosdeportivos.web.dto.DevolucionDto.DevolucionRespuesta;
 import co.edu.itm.prestamosdeportivos.web.dto.DevolucionDto.DevolucionResumenRespuesta;
 import co.edu.itm.prestamosdeportivos.web.dto.DevolucionDto.RegistrarDevolucionSolicitud;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,9 +28,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 /** CU-16 y CU-17: registro y consulta de devoluciones. */
 @RestController
+@Validated
 @RequestMapping("/api/v1")
 @PreAuthorize("hasRole('PRESTADOR')")
 public class DevolucionControlador {
@@ -58,7 +61,7 @@ public class DevolucionControlador {
             @RequestParam(required = false) AlcanceDevolucion alcance,
             @RequestParam(required = false) OffsetDateTime desde,
             @RequestParam(required = false) OffsetDateTime hasta,
-            @RequestParam(required = false, name = "q") String texto,
+            @RequestParam(required = false, name = "q") @Size(max = 80, message = "no puede superar 80 caracteres") String texto,
             @Valid @ParameterObject ParametrosPagina pagina) {
         return servicio.listar(new DevolucionFiltros(prestamoId, usuarioId, implementoId, condicion, alcance,
                 desde == null ? null : desde.toInstant(), hasta == null ? null : hasta.toInstant(), texto), pagina);
