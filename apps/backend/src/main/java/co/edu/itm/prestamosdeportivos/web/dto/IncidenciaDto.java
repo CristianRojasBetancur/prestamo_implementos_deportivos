@@ -11,6 +11,7 @@ import co.edu.itm.prestamosdeportivos.dominio.TipoIncidencia;
 import co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaImplemento;
 import co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaPrestamo;
 import co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaUsuario;
+import co.edu.itm.prestamosdeportivos.web.comun.PaginaRespuesta;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,7 +32,13 @@ public final class IncidenciaDto {
     }
 
     public record IncidenciaRespuesta(UUID id, String codigo, TipoIncidencia tipo, EstadoIncidencia estado,
-            String descripcion, OffsetDateTime fechaRegistro, ReferenciaPrestamo prestamo,
-            ReferenciaImplemento implemento, ReferenciaUsuario usuario, ReferenciaUsuario prestador) {
+            String descripcion, OffsetDateTime fechaRegistro, OffsetDateTime fechaResolucion,
+            ReferenciaPrestamo prestamo, ReferenciaImplemento implemento, ReferenciaUsuario usuario,
+            ReferenciaUsuario prestador, ReferenciaUsuario resueltoPor) {
+    }
+
+    public record IncidenciaResumenRespuesta(UUID id, String codigo, TipoIncidencia tipo, EstadoIncidencia estado,
+            OffsetDateTime fechaRegistro, OffsetDateTime fechaResolucion, ReferenciaPrestamo prestamo,
+            ReferenciaImplemento implemento, ReferenciaUsuario usuario) {
     }
 }

@@ -12,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.Generated;
+import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
+import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
 
 /**
  * Novedad registrada sobre una unidad de un préstamo. {@code prestamo} e
@@ -41,6 +43,10 @@ public class Incidencia extends EntidadBase {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "prestador_id", nullable = false)
     private Usuario prestador;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resuelto_por_id")
+    private Usuario resueltoPor;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false, length = 20)
@@ -112,5 +118,19 @@ public class Incidencia extends EntidadBase {
 
     public Instant getFechaResolucion() {
         return fechaResolucion;
+    }
+
+    public Usuario getResueltoPor() {
+        return resueltoPor;
+    }
+
+    /** Cierra la incidencia conservando la auditoría de la operación administrativa. */
+    public void resolver(Usuario administrador, Instant fechaResolucion) {
+        if (estado != EstadoIncidencia.REGISTRADA) {
+            throw new ExcepcionDominio(CodigoError.INCIDENCIA_YA_RESUELTA);
+        }
+        this.estado = EstadoIncidencia.RESUELTA;
+        this.resueltoPor = Objects.requireNonNull(administrador, "administrador");
+        this.fechaResolucion = Objects.requireNonNull(fechaResolucion, "fechaResolucion");
     }
 }

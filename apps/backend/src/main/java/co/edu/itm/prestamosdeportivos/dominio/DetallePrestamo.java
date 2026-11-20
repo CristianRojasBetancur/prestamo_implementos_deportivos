@@ -80,4 +80,14 @@ public class DetallePrestamo extends EntidadBase {
         this.fechaResolucion = Objects.requireNonNull(fechaResolucion, "fechaResolucion");
         this.condicionRecibida = Objects.requireNonNull(condicion, "condicion");
     }
+
+    /** Resuelve la responsabilidad de la unidad mediante una incidencia. */
+    public void registrarIncidencia(Instant fechaResolucion) {
+        if (estado != EstadoDetallePrestamo.PENDIENTE_DEVOLUCION) {
+            throw new ExcepcionDominio(CodigoError.UNIDAD_YA_RESUELTA);
+        }
+        this.estado = EstadoDetallePrestamo.RESUELTO_POR_INCIDENCIA;
+        this.fechaResolucion = Objects.requireNonNull(fechaResolucion, "fechaResolucion");
+        this.condicionRecibida = null;
+    }
 }

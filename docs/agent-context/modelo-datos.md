@@ -1,7 +1,7 @@
 # Modelo de datos y persistencia
 
 Contexto operativo del esquema PostgreSQL del backend. Lo crean las migraciones
-`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql`, `V4__indices_consulta_disponibilidad.sql` y `V5__evento_historial_prestamo.sql` y lo
+`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql`, `V4__indices_consulta_disponibilidad.sql`, `V5__evento_historial_prestamo.sql`, `V7__indices_consulta_devoluciones.sql` y `V8__auditoria_resolucion_incidencias.sql` y lo
 gobierna `docs/specs/BE-01-api-backend-mvp.md` (§6, §7 y §11). Es un documento
 vivo: cualquier migración que cambie tablas, constraints, índices o enumeraciones
 debe actualizarlo.
@@ -111,6 +111,7 @@ Nunca se renombra una constante Java sin esa migración.
 | `DM-07` | **La fecha de registro del implemento es `creado_en`.** BE-01 llama `fechaRegistro` a este dato en la API; no se duplica la columna. |
 | `DM-08` | **`sancion.justificacion` se crea, pero es opcional.** Según BE-01 (RN-03, D-08), un retraso justificado no genera sanción, así que en el MVP la columna queda `NULL`. Se conserva porque el issue la pide, para observaciones o una futura anulación (ver `PEND-05`). |
 | `DM-09` | **Instantes en `timestamptz` (UTC)** con `hibernate.jdbc.time_zone = UTC`. La zona institucional solo se aplica al serializar respuestas (BE-01 §4.4). |
+| `DM-10` | **La resolución de una incidencia conserva auditoría propia.** `incidencia.resuelto_por_id` y `fecha_resolucion` registran al ADMIN y el instante de cierre; resolver no cambia automáticamente el estado de la unidad. |
 
 **Pendiente para el equipo:**
 
@@ -123,7 +124,7 @@ Nunca se renombra una constante Java sin esa migración.
 |---|---|
 | `ix_prestamo_usuario_estado` | Préstamos activos de un usuario (RN-01, RN-05, CU-13). |
 | `ix_prestamo_vencimiento` (parcial, `estado <> 'FINALIZADO'`) | Préstamos vencidos (RN-05, tarea CU-20). |
-| `ix_prestamo_fecha_prestamo`, `ix_devolucion_fecha_devolucion`, `ix_incidencia_fecha_registro` | Listados ordenados por fecha y filtros `desde`/`hasta`. |
+| `ix_prestamo_fecha_prestamo`, `ix_devolucion_fecha_devolucion`, `ix_incidencia_fecha_registro`, `ix_incidencia_estado_fecha` | Listados ordenados por fecha y filtros `desde`/`hasta`; el último agrega el estado de incidencia. |
 | `ix_implemento_categoria_estado`, `ix_implemento_estado` | Disponibilidad por categoría e inventario por estado. |
 | `ix_detalle_prestamo_prestamo_estado`, `uq_detalle_prestamo_implemento_pendiente` | Unidades pendientes de un préstamo o de un usuario. |
 | `ix_sancion_usuario_vigente` (parcial, `estado = 'ACTIVA'`) | Sanción vigente de un usuario. |
