@@ -30,10 +30,7 @@ import co.edu.itm.prestamosdeportivos.dominio.DetalleDevolucion;
 import co.edu.itm.prestamosdeportivos.dominio.DetallePrestamo;
 import co.edu.itm.prestamosdeportivos.dominio.Devolucion;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoDetallePrestamo;
-import co.edu.itm.prestamosdeportivos.dominio.EstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoPrestamo;
-import co.edu.itm.prestamosdeportivos.dominio.EventoEstadoImplemento;
-import co.edu.itm.prestamosdeportivos.dominio.HistorialEstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.ImplementoDeportivo;
 import co.edu.itm.prestamosdeportivos.dominio.Incidencia;
 import co.edu.itm.prestamosdeportivos.dominio.Prestamo;
@@ -47,7 +44,6 @@ import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
 import co.edu.itm.prestamosdeportivos.persistencia.DevolucionEspecificaciones;
 import co.edu.itm.prestamosdeportivos.persistencia.DevolucionFiltros;
 import co.edu.itm.prestamosdeportivos.persistencia.DevolucionRepositorio;
-import co.edu.itm.prestamosdeportivos.persistencia.HistorialEstadoImplementoRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.ImplementoDeportivoRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.IncidenciaRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.PrestamoRepositorio;
@@ -75,7 +71,8 @@ public class DevolucionServicio {
     private final ImplementoDeportivoRepositorio implementos;
     private final IncidenciaRepositorio incidencias;
     private final SancionRepositorio sanciones;
-    private final HistorialEstadoImplementoRepositorio historial;
+    private final LiberacionDisponibilidad disponibilidad;
+    private final CierrePrestamo cierre;
     private final UsuarioRepositorio usuarios;
     private final ConversorFechas fechas;
     private final Clock reloj;
@@ -83,7 +80,7 @@ public class DevolucionServicio {
 
     public DevolucionServicio(DevolucionRepositorio devoluciones, PrestamoRepositorio prestamos,
             ImplementoDeportivoRepositorio implementos, IncidenciaRepositorio incidencias,
-            SancionRepositorio sanciones, HistorialEstadoImplementoRepositorio historial,
+            SancionRepositorio sanciones, LiberacionDisponibilidad disponibilidad, CierrePrestamo cierre,
             UsuarioRepositorio usuarios, ConversorFechas fechas, Clock reloj,
             List<PoliticaSancion> politicasSancion) {
         this.devoluciones = devoluciones;
@@ -91,7 +88,8 @@ public class DevolucionServicio {
         this.implementos = implementos;
         this.incidencias = incidencias;
         this.sanciones = sanciones;
-        this.historial = historial;
+        this.disponibilidad = disponibilidad;
+        this.cierre = cierre;
         this.usuarios = usuarios;
         this.fechas = fechas;
         this.reloj = reloj;
@@ -153,7 +151,6 @@ public class DevolucionServicio {
                 completa ? AlcanceDevolucion.COMPLETA : AlcanceDevolucion.PARCIAL,
                 retrasoJustificado, solicitud.justificacion(), solicitud.observaciones());
         List<Incidencia> incidenciasNuevas = new ArrayList<>();
-        List<HistorialEstadoImplemento> eventos = new ArrayList<>();
 
         for (ItemDevolucionSolicitud item : solicitud.items()) {
             DetallePrestamo detalle = seleccionados.get(item.implementoId());
@@ -167,16 +164,7 @@ public class DevolucionServicio {
                 incidenciasNuevas.add(incidencia);
             }
             detalle.registrarDevolucion(ahora, item.condicion());
-            EstadoImplemento anterior = unidad.getEstado();
-            EstadoImplemento nuevo = item.condicion() == CondicionDevolucion.BUENO
-                    ? EstadoImplemento.DISPONIBLE : EstadoImplemento.EN_MANTENIMIENTO;
-            unidad.cambiarEstado(nuevo, item.condicion() == CondicionDevolucion.BUENO
-                    ? EventoEstadoImplemento.DEVOLUCION : EventoEstadoImplemento.INCIDENCIA);
-            eventos.add(new HistorialEstadoImplemento(unidad, anterior, nuevo,
-                    item.condicion() == CondicionDevolucion.BUENO
-                            ? EventoEstadoImplemento.DEVOLUCION : EventoEstadoImplemento.INCIDENCIA,
-                    item.condicion() == CondicionDevolucion.BUENO
-                            ? "Unidad recibida en buen estado." : "Unidad recibida con novedad."));
+            disponibilidad.liberar(unidad, item.condicion(), prestador);
             devolucion.agregarDetalle(detalle, item.condicion(), item.observaciones(), incidencia);
         }
 
@@ -184,9 +172,7 @@ public class DevolucionServicio {
             incidencias.saveAllAndFlush(incidenciasNuevas);
         }
         devoluciones.saveAndFlush(devolucion);
-        implementos.saveAll(unidades.values());
-        historial.saveAll(eventos);
-        prestamo.actualizarEstadoTrasDevolucion(ahora);
+        cierre.actualizar(prestamo, ahora);
         prestamos.saveAndFlush(prestamo);
 
         Sancion sancion = crearSancionSiAplica(prestamo, devolucion, ahora);

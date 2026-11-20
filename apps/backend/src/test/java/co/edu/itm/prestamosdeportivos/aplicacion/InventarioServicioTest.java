@@ -16,6 +16,7 @@ import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
 import co.edu.itm.prestamosdeportivos.persistencia.CategoriaRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.HistorialEstadoImplementoRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.ImplementoDeportivoRepositorio;
+import co.edu.itm.prestamosdeportivos.persistencia.UsuarioRepositorio;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -29,6 +30,7 @@ class InventarioServicioTest {
     @Mock private ImplementoDeportivoRepositorio implementos;
     @Mock private CategoriaRepositorio categorias;
     @Mock private HistorialEstadoImplementoRepositorio historial;
+    @Mock private UsuarioRepositorio usuarios;
     @InjectMocks private InventarioServicio servicio;
 
     @Test

@@ -9,17 +9,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import co.edu.itm.prestamosdeportivos.dominio.EstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoPrestamo;
-import co.edu.itm.prestamosdeportivos.dominio.EventoEstadoImplemento;
-import co.edu.itm.prestamosdeportivos.dominio.HistorialEstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.Prestamo;
 import co.edu.itm.prestamosdeportivos.dominio.Rol;
 import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
 import co.edu.itm.prestamosdeportivos.dominio.error.ErrorCampo;
 import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
-import co.edu.itm.prestamosdeportivos.persistencia.HistorialEstadoImplementoRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.ImplementoDeportivoRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.PrestamoRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.UsuarioRepositorio;
@@ -38,18 +34,18 @@ public class PrestamoServicio {
     private final PrestamoRepositorio prestamos;
     private final ImplementoDeportivoRepositorio implementos;
     private final UsuarioRepositorio usuarios;
-    private final HistorialEstadoImplementoRepositorio historial;
+    private final ReservaDisponibilidad disponibilidad;
     private final SituacionUsuarioServicio elegibilidad;
     private final ConversorFechas conversorFechas;
     private final Clock reloj;
 
     public PrestamoServicio(PrestamoRepositorio prestamos, ImplementoDeportivoRepositorio implementos,
-            UsuarioRepositorio usuarios, HistorialEstadoImplementoRepositorio historial,
-            SituacionUsuarioServicio elegibilidad, ConversorFechas conversorFechas, Clock reloj) {
+            UsuarioRepositorio usuarios, SituacionUsuarioServicio elegibilidad,
+            ConversorFechas conversorFechas, Clock reloj, ReservaDisponibilidad disponibilidad) {
         this.prestamos = prestamos;
         this.implementos = implementos;
         this.usuarios = usuarios;
-        this.historial = historial;
+        this.disponibilidad = disponibilidad;
         this.elegibilidad = elegibilidad;
         this.conversorFechas = conversorFechas;
         this.reloj = reloj;
@@ -90,18 +86,14 @@ public class PrestamoServicio {
 
         var entrega = reloj.instant();
         Prestamo prestamo = new Prestamo(usuario, prestador, entrega, entrega.plus(Duration.ofHours(24)));
-        List<HistorialEstadoImplemento> eventos = new ArrayList<>();
+        List<co.edu.itm.prestamosdeportivos.dominio.ImplementoDeportivo> unidades = new ArrayList<>();
         for (UUID id : new java.util.LinkedHashSet<>(ids)) {
             var unidad = porId.get(id);
-            EstadoImplemento anterior = unidad.getEstado();
-            unidad.cambiarEstado(EstadoImplemento.PRESTADO, EventoEstadoImplemento.PRESTAMO);
-            eventos.add(new HistorialEstadoImplemento(unidad, anterior, EstadoImplemento.PRESTADO,
-                    EventoEstadoImplemento.PRESTAMO, "Entrega asignada a un préstamo."));
+            unidades.add(unidad);
             prestamo.agregarDetalle(unidad);
         }
+        disponibilidad.reservar(unidades, prestador);
         var guardado = prestamos.saveAndFlush(prestamo);
-        implementos.saveAll(bloqueadas);
-        historial.saveAll(eventos);
         return respuesta(guardado);
     }
 

@@ -71,6 +71,9 @@ class EsquemaPersistenciaTest {
         assertThat(tablas).containsExactlyInAnyOrder("usuario", "categoria", "implemento_deportivo", "prestamo",
                 "detalle_prestamo", "devolucion", "detalle_devolucion", "incidencia", "sancion",
                 "historial_estado_implemento");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM information_schema.columns "
+                + "WHERE table_schema = 'public' AND table_name = 'historial_estado_implemento' "
+                + "AND column_name = 'operador_id'", Integer.class)).isEqualTo(1);
     }
 
     @Test

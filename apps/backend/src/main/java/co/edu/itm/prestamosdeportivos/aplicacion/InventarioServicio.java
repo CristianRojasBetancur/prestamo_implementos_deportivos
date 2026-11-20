@@ -8,12 +8,16 @@ import co.edu.itm.prestamosdeportivos.dominio.EstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.EventoEstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.HistorialEstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.ImplementoDeportivo;
+import co.edu.itm.prestamosdeportivos.dominio.Rol;
+import co.edu.itm.prestamosdeportivos.dominio.Usuario;
 import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
 import co.edu.itm.prestamosdeportivos.dominio.error.ErrorCampo;
 import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
 import co.edu.itm.prestamosdeportivos.persistencia.CategoriaRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.HistorialEstadoImplementoRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.ImplementoDeportivoRepositorio;
+import co.edu.itm.prestamosdeportivos.persistencia.UsuarioRepositorio;
+import co.edu.itm.prestamosdeportivos.seguridad.UsuarioAutenticado;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,12 +30,14 @@ public class InventarioServicio {
     private final ImplementoDeportivoRepositorio implementos;
     private final CategoriaRepositorio categorias;
     private final HistorialEstadoImplementoRepositorio historial;
+    private final UsuarioRepositorio usuarios;
 
     public InventarioServicio(ImplementoDeportivoRepositorio implementos, CategoriaRepositorio categorias,
-            HistorialEstadoImplementoRepositorio historial) {
+            HistorialEstadoImplementoRepositorio historial, UsuarioRepositorio usuarios) {
         this.implementos = implementos;
         this.categorias = categorias;
         this.historial = historial;
+        this.usuarios = usuarios;
     }
 
     @Transactional
@@ -85,11 +91,20 @@ public class InventarioServicio {
 
     @Transactional
     public ImplementoDeportivo cambiarEstado(UUID id, EstadoImplemento nuevoEstado, String motivo) {
+        return cambiarEstado(id, nuevoEstado, motivo, null);
+    }
+
+    @Transactional
+    public ImplementoDeportivo cambiarEstado(UUID id, EstadoImplemento nuevoEstado, String motivo,
+            UsuarioAutenticado operador) {
         ImplementoDeportivo implemento = obtener(id);
         EstadoImplemento anterior = implemento.getEstado();
         implemento.cambiarEstado(nuevoEstado, EventoEstadoImplemento.ADMINISTRACION);
+        Usuario operadorEntidad = operador == null ? null : usuarios.findByIdAndRol(operador.id(), Rol.ADMIN)
+                .filter(Usuario::isActivo)
+                .orElseThrow(() -> new ExcepcionDominio(CodigoError.SESION_INVALIDA));
         historial.save(new HistorialEstadoImplemento(implemento, anterior, nuevoEstado,
-                EventoEstadoImplemento.ADMINISTRACION, motivo.trim()));
+                EventoEstadoImplemento.ADMINISTRACION, motivo.trim(), operadorEntidad));
         return implemento;
     }
 

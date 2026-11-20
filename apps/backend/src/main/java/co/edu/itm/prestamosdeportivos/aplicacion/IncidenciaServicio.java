@@ -17,7 +17,6 @@ import java.util.UUID;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoDetallePrestamo;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.EstadoPrestamo;
-import co.edu.itm.prestamosdeportivos.dominio.EventoEstadoImplemento;
 import co.edu.itm.prestamosdeportivos.dominio.Incidencia;
 import co.edu.itm.prestamosdeportivos.dominio.ImplementoDeportivo;
 import co.edu.itm.prestamosdeportivos.dominio.Prestamo;
@@ -28,7 +27,6 @@ import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
 import co.edu.itm.prestamosdeportivos.dominio.error.ErrorCampo;
 import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
 import co.edu.itm.prestamosdeportivos.dominio.DetallePrestamo;
-import co.edu.itm.prestamosdeportivos.persistencia.HistorialEstadoImplementoRepositorio;
 import co.edu.itm.prestamosdeportivos.persistencia.IncidenciaEspecificaciones;
 import co.edu.itm.prestamosdeportivos.persistencia.IncidenciaFiltros;
 import co.edu.itm.prestamosdeportivos.persistencia.IncidenciaRepositorio;
@@ -54,18 +52,21 @@ public class IncidenciaServicio {
     private final IncidenciaRepositorio incidencias;
     private final PrestamoRepositorio prestamos;
     private final ImplementoDeportivoRepositorio implementos;
-    private final HistorialEstadoImplementoRepositorio historial;
+    private final IncidenciaDisponibilidad disponibilidad;
+    private final CierrePrestamo cierre;
     private final UsuarioRepositorio usuarios;
     private final ConversorFechas fechas;
     private final Clock reloj;
 
     public IncidenciaServicio(IncidenciaRepositorio incidencias, PrestamoRepositorio prestamos,
-            ImplementoDeportivoRepositorio implementos, HistorialEstadoImplementoRepositorio historial,
+            ImplementoDeportivoRepositorio implementos, IncidenciaDisponibilidad disponibilidad,
+            CierrePrestamo cierre,
             UsuarioRepositorio usuarios, ConversorFechas fechas, Clock reloj) {
         this.incidencias = incidencias;
         this.prestamos = prestamos;
         this.implementos = implementos;
-        this.historial = historial;
+        this.disponibilidad = disponibilidad;
+        this.cierre = cierre;
         this.usuarios = usuarios;
         this.fechas = fechas;
         this.reloj = reloj;
@@ -107,14 +108,10 @@ public class IncidenciaServicio {
         Instant ahora = reloj.instant();
         Incidencia incidencia = new Incidencia(detalle, prestador, solicitud.tipo(), solicitud.descripcion().trim(), ahora);
         detalle.registrarIncidencia(ahora);
-        EstadoImplemento anterior = implemento.getEstado();
-        implemento.cambiarEstado(EstadoImplemento.DADO_DE_BAJA, EventoEstadoImplemento.INCIDENCIA);
-        historial.save(new co.edu.itm.prestamosdeportivos.dominio.HistorialEstadoImplemento(implemento, anterior,
-                EstadoImplemento.DADO_DE_BAJA, EventoEstadoImplemento.INCIDENCIA,
-                "Unidad reportada como " + solicitud.tipo().name() + "."));
+        disponibilidad.marcarNoDisponible(implemento, EstadoImplemento.DADO_DE_BAJA, prestador,
+                "Unidad reportada como " + solicitud.tipo().name() + ".");
         incidencias.save(incidencia);
-        implementos.save(implemento);
-        prestamo.actualizarEstadoTrasDevolucion(ahora);
+        cierre.actualizar(prestamo, ahora);
         prestamos.saveAndFlush(prestamo);
         return respuesta(incidencia);
     }

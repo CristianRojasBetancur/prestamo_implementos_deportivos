@@ -35,20 +35,31 @@ public class HistorialEstadoImplemento extends EntidadBase {
     @Column(name = "motivo", nullable = false, length = 500, updatable = false)
     private String motivo;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "operador_id", updatable = false)
+    private Usuario operador;
+
     protected HistorialEstadoImplemento() {
     }
 
     public HistorialEstadoImplemento(ImplementoDeportivo implemento, EstadoImplemento estadoAnterior,
             EstadoImplemento estadoNuevo, EventoEstadoImplemento evento, String motivo) {
+        this(implemento, estadoAnterior, estadoNuevo, evento, motivo, null);
+    }
+
+    public HistorialEstadoImplemento(ImplementoDeportivo implemento, EstadoImplemento estadoAnterior,
+            EstadoImplemento estadoNuevo, EventoEstadoImplemento evento, String motivo, Usuario operador) {
         this.implemento = Objects.requireNonNull(implemento, "implemento");
         this.estadoAnterior = Objects.requireNonNull(estadoAnterior, "estadoAnterior");
         this.estadoNuevo = Objects.requireNonNull(estadoNuevo, "estadoNuevo");
         this.evento = Objects.requireNonNull(evento, "evento");
         this.motivo = Objects.requireNonNull(motivo, "motivo");
+        this.operador = operador;
     }
 
     public EstadoImplemento getEstadoAnterior() { return estadoAnterior; }
     public EstadoImplemento getEstadoNuevo() { return estadoNuevo; }
     public EventoEstadoImplemento getEvento() { return evento; }
     public String getMotivo() { return motivo; }
+    public Usuario getOperador() { return operador; }
 }
