@@ -1,0 +1,10 @@
+.env
+.env.*
+target/
+.idea/
+.vscode/
+*.log
+performance/results/
+src/test/
+README.md
+AGENTS.md

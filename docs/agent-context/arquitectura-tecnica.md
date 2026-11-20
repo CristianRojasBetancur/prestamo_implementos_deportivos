@@ -34,6 +34,13 @@ por retraso BE-13, incluyendo la coordinación transaccional con inventario,
 incidencias y sanciones. Los
 comandos están en `apps/backend/README.md`.
 
+El Compose oficial está en la raíz del repositorio y levanta PostgreSQL 17 y la
+API empaquetada con healthchecks y dependencia explícita de readiness. El
+backend también puede ejecutarse directamente con Maven desde `apps/backend/`.
+La imagen usa una construcción multi-stage y un usuario no root. CI valida
+compilación, pruebas unitarias e integración, Flyway desde una base vacía,
+contratos, frontend, imagen Docker, Compose y smoke test.
+
 ## Componentes de referencia
 
 ### Frontend
@@ -84,6 +91,12 @@ El registro de préstamos valida usuario y unidades, guarda el préstamo y marca
 Registrar una devolución debe guardar la devolución, registrar una incidencia si aplica, actualizar el estado de la unidad, aplicar la política de sanción y evaluar el cierre del préstamo dentro del mismo límite transaccional cuando corresponda.
 
 Las pruebas de concurrencia PostgreSQL/Testcontainers están definidas para el registro de préstamos; su ejecución requiere Docker.
+
+Las decisiones de empaquetado, seguridad de runtime, transacciones, concurrencia,
+estados, sanciones y la discrepancia editorial RF-19 están registradas en
+`docs/adr/001-operacion-y-verificacion-del-backend-mvp.md`. RNF-01 se demuestra
+con k6 y evidencia de ejecución; RNF-02 solo puede verificarse localmente en sus
+healthchecks y propiedades stateless, no como disponibilidad mensual garantizada.
 
 ## Principios de evolución
 

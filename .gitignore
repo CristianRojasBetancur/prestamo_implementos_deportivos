@@ -1,2 +1,18 @@
 # Codebase Memory generated index and artifacts
 .codebase-memory/
+node_modules/
+dist/
+target/
+*.tsbuildinfo
+
+# Variables locales; conserva únicamente las plantillas.
+.env
+.env.local
+.env.*
+!.env.example
+
+# IDE y archivos temporales.
+.idea/
+*.iml
+.vscode/
+*.log

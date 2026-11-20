@@ -1,0 +1,52 @@
+name: prestamo-implementos
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NOMBRE:?Defina DB_NOMBRE en .env}
+      POSTGRES_USER: ${DB_USUARIO:?Defina DB_USUARIO en .env}
+      POSTGRES_PASSWORD: ${DB_CONTRASENA:?Defina DB_CONTRASENA en .env}
+    ports:
+      - "${DB_PUERTO:-5432}:5432"
+    volumes:
+      - postgres-datos:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_HOST: postgres
+      DB_PUERTO: 5432
+      DB_NOMBRE: ${DB_NOMBRE:?Defina DB_NOMBRE en .env}
+      DB_USUARIO: ${DB_USUARIO:?Defina DB_USUARIO en .env}
+      DB_CONTRASENA: ${DB_CONTRASENA:?Defina DB_CONTRASENA en .env}
+      APP_CORS_ORIGENES: ${APP_CORS_ORIGENES:-http://localhost:5173}
+      APP_JWT_SECRETO: ${APP_JWT_SECRETO:?Defina APP_JWT_SECRETO en .env}
+      APP_ADMIN_CORREO: ${APP_ADMIN_CORREO:-}
+      APP_ADMIN_CONTRASENA: ${APP_ADMIN_CONTRASENA:-}
+      APP_ADMIN_IDENTIFICACION: ${APP_ADMIN_IDENTIFICACION:-ADMIN-0001}
+    ports:
+      - "${API_PUERTO:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health/readiness | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  postgres-datos:

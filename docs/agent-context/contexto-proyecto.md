@@ -47,6 +47,12 @@ No forman parte del contexto actual: ERP, mapas, geolocalización, notificacione
 
 Cada funcionalidad futura debe poder relacionarse con un actor, una especificación SDD, uno o más casos de uso, reglas aplicables, componentes responsables y pruebas. El contexto no autoriza implementar una funcionalidad por sí mismo.
 
+La checklist vigente del MVP está en `docs/mvp-acceptance-checklist.md` y usa la
+traza actor → HU/RU → RF/RN/RNF → componente → endpoint → prueba. El backend y
+frontend están inicializados y se levantan con el Compose raíz o con los
+comandos de desarrollo documentados en el README raíz. La disponibilidad mensual
+de 99,5 % (RNF-02) no se afirma como demostrada localmente.
+
 ## Fuentes
 
 La información se consolidó a partir de `source/contexto_proyecto_sistemas_de_informacion.pdf`, `source/modelo_c4.md`, `source/seleccion_de_patrones_de_diseno.md`, `source/PLAN_IMPLEMENTACION.md` y los documentos de apoyo ubicados en `source/`.
