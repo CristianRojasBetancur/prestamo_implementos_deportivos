@@ -86,7 +86,7 @@ class PrestamoServicioIntegracionTest {
         assertThat(respuesta.fechaLimiteDevolucion().toInstant()).isEqualTo(respuesta.fechaPrestamo().toInstant().plusSeconds(86400));
         assertThat(respuesta.prestador().id()).isEqualTo(f.operador().id());
         assertThat(implementos.findById(f.unidades().get(0).getId()).orElseThrow().getEstado()).isEqualTo(EstadoImplemento.PRESTADO);
-        assertThat(historial.findAll()).anySatisfy(h->{assertThat(h.getEvento()).isEqualTo(EventoEstadoImplemento.PRESTAMO);assertThat(h.getEstadoNuevo()).isEqualTo(EstadoImplemento.PRESTADO);});
+        assertThat(historial.findAll()).anySatisfy(h->{assertThat(h.getEvento()).isEqualTo(EventoEstadoImplemento.PRESTAMO);assertThat(h.getEstadoNuevo()).isEqualTo(EstadoImplemento.PRESTADO);assertThat(h.getOperador().getId()).isEqualTo(f.operador().id());});
     }
 
     @Test

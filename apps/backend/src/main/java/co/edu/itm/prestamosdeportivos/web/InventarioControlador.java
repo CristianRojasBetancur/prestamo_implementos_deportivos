@@ -14,12 +14,14 @@ import co.edu.itm.prestamosdeportivos.web.dto.GestionInventarioDto.CambioEstadoS
 import co.edu.itm.prestamosdeportivos.web.dto.GestionInventarioDto.CrearUnidadSolicitud;
 import co.edu.itm.prestamosdeportivos.web.dto.GestionInventarioDto.UnidadRespuesta;
 import co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaCategoria;
+import co.edu.itm.prestamosdeportivos.seguridad.UsuarioAutenticado;
 import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,8 +72,9 @@ public class InventarioControlador {
     }
 
     @PatchMapping("/{id}/state")
-    public UnidadRespuesta cambiarEstado(@PathVariable UUID id, @Valid @RequestBody CambioEstadoSolicitud solicitud) {
-        return respuesta(servicio.cambiarEstado(id, solicitud.estado(), solicitud.motivo()));
+    public UnidadRespuesta cambiarEstado(@PathVariable UUID id, @Valid @RequestBody CambioEstadoSolicitud solicitud,
+            @AuthenticationPrincipal UsuarioAutenticado operador) {
+        return respuesta(servicio.cambiarEstado(id, solicitud.estado(), solicitud.motivo(), operador));
     }
 
     private static UnidadRespuesta respuesta(ImplementoDeportivo implemento) {

@@ -70,6 +70,11 @@ Los componentes representan responsabilidades significativas, no entidades aisla
 - Frontend: presenta, captura y consulta; no es autoridad de seguridad ni de negocio.
 - Base de datos: persiste y ayuda a garantizar integridad; no reemplaza la lógica de aplicación.
 
+`ActualizadorDisponibilidad` implementa BE-15 como Mediator mediante puertos
+segregados para reservar, liberar, marcar incidencias y evaluar el cierre. Las
+transiciones de unidad permanecen en `EstadoImplemento`; el Mediator no crea
+transacciones propias.
+
 ## Consistencia y transacciones
 
 El registro de préstamos valida usuario y unidades, guarda el préstamo y marca las unidades como PRESTADO dentro de una transacción. Bloqueos pesimistas serializan operaciones por solicitante y unidades, mientras un índice único parcial protege RN-06. Las consultas BE-11 separan la lectura del registro transaccional, usan filtros paginados y proyecciones de conteos para evitar N+1; el vencimiento se calcula con el `Clock` sin mutar el préstamo.

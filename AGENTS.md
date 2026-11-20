@@ -30,7 +30,7 @@ No se deben crear APIs, pantallas, entidades o integraciones que no estén respa
 - El MVP contempla autenticación, autorización por rol, prestadores, inventario, préstamos, devoluciones e incidencias.
 - Los actores son Usuario, Administrador y Prestador.
 - La arquitectura de referencia contiene aplicación web, API backend y PostgreSQL.
-- Las tecnologías de referencia son React/Vite, Java/Spring Boot y PostgreSQL. `apps/frontend/` está inicializado con React, Vite y TypeScript; `apps/backend/` está inicializado con Java 21, Spring Boot 4.1, Maven, Flyway y PostgreSQL, y contiene autenticación JWT, gestión de prestadores BE-02, elegibilidad BE-09, registro transaccional BE-10, consultas BE-11, devoluciones BE-12 y sanciones por retraso BE-13.
+- Las tecnologías de referencia son React/Vite, Java/Spring Boot y PostgreSQL. `apps/frontend/` está inicializado con React, Vite y TypeScript; `apps/backend/` está inicializado con Java 21, Spring Boot 4.1, Maven, Flyway y PostgreSQL, y contiene autenticación JWT, gestión de prestadores BE-02, elegibilidad BE-09, registro transaccional BE-10, consultas BE-11, devoluciones BE-12, sanciones por retraso BE-13 y coordinación de disponibilidad BE-15.
 - No deben agregarse ERP, mapas, geolocalización, notificaciones externas, pagos, reservas independientes ni analítica avanzada salvo que una especificación cambie explícitamente el alcance.
 
 ## Reglas técnicas generales
@@ -45,7 +45,7 @@ No se deben crear APIs, pantallas, entidades o integraciones que no estén respa
 
 ## Estructura del monorepo
 
-- `apps/backend/`: API Spring Boot gobernada por `docs/specs/BE-01-api-backend-mvp.md`; comandos y configuración en `apps/backend/README.md`. Implementa también BE-14 para registro, consulta y resolución administrativa de incidencias.
+- `apps/backend/`: API Spring Boot gobernada por `docs/specs/BE-01-api-backend-mvp.md`; comandos y configuración en `apps/backend/README.md`. Implementa también BE-14 para registro, consulta y resolución administrativa de incidencias y BE-15 para coordinar disponibilidad mediante Mediator.
 - `apps/frontend/`: aplicación React/Vite con TypeScript; su alcance inicial está especificado en `docs/specs/FE-01-frontend-mvp.md`.
 - `docs/agent-context/`: contexto operativo para agentes.
 - `docs/source/`: documentos originales aportados por el proyecto.
