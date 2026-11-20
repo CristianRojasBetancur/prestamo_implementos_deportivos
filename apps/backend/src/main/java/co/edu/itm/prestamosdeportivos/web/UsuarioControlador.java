@@ -15,6 +15,7 @@ import co.edu.itm.prestamosdeportivos.web.comun.PaginaRespuesta;
 import co.edu.itm.prestamosdeportivos.web.comun.ParametrosPagina;
 import co.edu.itm.prestamosdeportivos.web.dto.UsuarioDto.SolicitanteRespuesta;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 
 /** CU-13: búsqueda paginada de usuarios solicitantes. */
 @RestController
@@ -33,7 +34,7 @@ public class UsuarioControlador {
     @Operation(summary = "Buscar usuarios solicitantes",
             description = "Listado paginado de usuarios con rol USER. La consulta es informativa y no modifica datos.")
     public PaginaRespuesta<SolicitanteRespuesta> listar(
-            @RequestParam(required = false, name = "q") String texto,
+            @RequestParam(required = false, name = "q") @Size(max = 80, message = "no puede superar 80 caracteres") String texto,
             @Valid @ParameterObject ParametrosPagina pagina) {
         return servicio.listar(texto, pagina);
     }

@@ -14,15 +14,18 @@ import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 /** CU-12 público de BE-01; la ruta inglesa es alias solicitado por BE-08. */
 @RestController
+@Validated
 @RequestMapping("/api/v1")
 public class DisponibilidadControlador {
 
@@ -38,7 +41,7 @@ public class DisponibilidadControlador {
     public PaginaRespuesta<DisponibilidadRespuesta> consultar(
             @RequestParam(required = false) UUID categoriaId,
             @RequestParam(required = false) UUID categoryId,
-            @RequestParam(required = false) String q,
+            @RequestParam(required = false) @Size(max = 80, message = "no puede superar 80 caracteres") String q,
             @Valid @ParameterObject ParametrosPagina pagina) {
         if (categoriaId != null && categoryId != null && !categoriaId.equals(categoryId)) {
             throw new ExcepcionDominio(CodigoError.VALIDACION_FALLIDA,

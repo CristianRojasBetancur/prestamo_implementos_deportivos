@@ -4,11 +4,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
 import co.edu.itm.prestamosdeportivos.dominio.error.ErrorCampo;
 import co.edu.itm.prestamosdeportivos.dominio.error.ExcepcionDominio;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -16,6 +18,8 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -97,13 +101,24 @@ public class ManejadorGlobalErrores extends ResponseEntityExceptionHandler {
         return responder(HttpStatus.CONFLICT, codigo, null, solicitud.getRequestURI(), List.of());
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> manejarViolacionRestriccion(ConstraintViolationException ex,
+            HttpServletRequest solicitud) {
+        List<ErrorCampo> errores = ex.getConstraintViolations().stream()
+                .map(violacion -> new ErrorCampo(ultimoSegmento(violacion.getPropertyPath()), violacion.getMessage()))
+                .toList();
+        return responder(HttpStatus.BAD_REQUEST, CodigoError.VALIDACION_FALLIDA, null,
+                solicitud.getRequestURI(), errores);
+    }
+
     @ExceptionHandler({OptimisticLockingFailureException.class, PessimisticLockingFailureException.class})
     public ResponseEntity<Object> manejarConcurrencia(RuntimeException ex, HttpServletRequest solicitud) {
         return responder(HttpStatus.CONFLICT, CodigoError.CONFLICTO_CONCURRENCIA,
                 null, solicitud.getRequestURI(), List.of());
     }
 
-    @ExceptionHandler({DataAccessResourceFailureException.class, CannotCreateTransactionException.class})
+    @ExceptionHandler({DataAccessResourceFailureException.class, CannotCreateTransactionException.class,
+            QueryTimeoutException.class, TransientDataAccessResourceException.class})
     public ResponseEntity<Object> manejarDependenciaNoDisponible(RuntimeException ex, HttpServletRequest solicitud) {
         return responder(HttpStatus.SERVICE_UNAVAILABLE, CodigoError.SERVICIO_NO_DISPONIBLE,
                 null, solicitud.getRequestURI(), List.of());
@@ -111,7 +126,10 @@ public class ManejadorGlobalErrores extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> manejarInesperado(Exception ex, HttpServletRequest solicitud) {
-        LOG.error("Error no controlado en {}", solicitud.getRequestURI(), ex);
+        // No se registra la excepción completa: su mensaje o causa podría contener
+        // credenciales, tokens o payloads enviados por el cliente.
+        LOG.error("Error no controlado en {} (tipo={})", solicitud.getRequestURI(),
+                ex.getClass().getSimpleName());
         return responder(HttpStatus.INTERNAL_SERVER_ERROR, CodigoError.ERROR_INTERNO,
                 null, solicitud.getRequestURI(), List.of());
     }
@@ -198,6 +216,13 @@ public class ManejadorGlobalErrores extends ResponseEntityExceptionHandler {
             return MENSAJE_FORMATO_INVALIDO;
         }
         return error.getDefaultMessage() != null ? error.getDefaultMessage() : "no es válido";
+    }
+
+    private static String ultimoSegmento(jakarta.validation.Path ruta) {
+        return StreamSupport.stream(ruta.spliterator(), false)
+                .reduce((primero, ultimo) -> ultimo)
+                .map(jakarta.validation.Path.Node::getName)
+                .orElse("parametro");
     }
 
     private ResponseEntity<Object> responder(HttpStatusCode estado, CodigoError codigo, String detalle, String ruta,

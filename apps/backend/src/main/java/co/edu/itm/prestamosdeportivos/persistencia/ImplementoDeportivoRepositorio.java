@@ -43,4 +43,28 @@ public interface ImplementoDeportivoRepositorio extends JpaRepository<Implemento
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select i from ImplementoDeportivo i where i.id in :ids order by i.id")
     List<ImplementoDeportivo> bloquearPorIds(@Param("ids") Collection<UUID> ids);
+
+    /**
+     * Consulta en lote el estado y las condiciones que excluyen una unidad del
+     * préstamo. Se usa durante la segunda validación dentro de la transacción.
+     */
+    @Query(value = """
+            SELECT i.id AS id,
+                   i.codigo_inventario AS codigoInventario,
+                   i.estado AS estado,
+                   EXISTS (
+                       SELECT 1 FROM detalle_prestamo d
+                        WHERE d.implemento_id = i.id
+                          AND d.estado = 'PENDIENTE_DEVOLUCION'
+                   ) AS pendienteDevolucion,
+                   EXISTS (
+                       SELECT 1 FROM incidencia inc
+                        WHERE inc.implemento_id = i.id
+                          AND inc.estado = 'REGISTRADA'
+                   ) AS incidenciaRegistrada
+              FROM implemento_deportivo i
+             WHERE i.id IN (:ids)
+             ORDER BY i.id
+            """, nativeQuery = true)
+    List<DisponibilidadUnidad> verificarDisponibilidad(@Param("ids") Collection<UUID> ids);
 }

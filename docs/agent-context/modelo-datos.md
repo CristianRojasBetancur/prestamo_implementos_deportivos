@@ -1,7 +1,7 @@
 # Modelo de datos y persistencia
 
 Contexto operativo del esquema PostgreSQL del backend. Lo crean las migraciones
-`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql`, `V4__indices_consulta_disponibilidad.sql`, `V5__evento_historial_prestamo.sql`, `V7__indices_consulta_devoluciones.sql`, `V8__auditoria_resolucion_incidencias.sql` y `V9__operador_historial_estado_implemento.sql` y lo
+`apps/backend/src/main/resources/db/migration/V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql`, `V4__indices_consulta_disponibilidad.sql`, `V5__evento_historial_prestamo.sql`, `V7__indices_consulta_devoluciones.sql`, `V8__auditoria_resolucion_incidencias.sql`, `V9__operador_historial_estado_implemento.sql` y `V10__indices_listados_operativos.sql` y lo
 gobierna `docs/specs/BE-01-api-backend-mvp.md` (§6, §7 y §11). Es un documento
 vivo: cualquier migración que cambie tablas, constraints, índices o enumeraciones
 debe actualizarlo.
@@ -125,6 +125,7 @@ Nunca se renombra una constante Java sin esa migración.
 | `ix_prestamo_usuario_estado` | Préstamos activos de un usuario (RN-01, RN-05, CU-13). |
 | `ix_prestamo_vencimiento` (parcial, `estado <> 'FINALIZADO'`) | Préstamos vencidos (RN-05, tarea CU-20). |
 | `ix_prestamo_fecha_prestamo`, `ix_devolucion_fecha_devolucion`, `ix_incidencia_fecha_registro`, `ix_incidencia_estado_fecha` | Listados ordenados por fecha y filtros `desde`/`hasta`; el último agrega el estado de incidencia. |
+| `ix_prestamo_estado_fecha_id`, `ix_devolucion_alcance_fecha_id`, `ix_incidencia_tipo_fecha_id` | Listados operativos paginados de préstamos, devoluciones e incidencias, combinando filtro frecuente, fecha descendente y desempate por UUID (`V10`). |
 | `ix_implemento_categoria_estado`, `ix_implemento_estado` | Disponibilidad por categoría e inventario por estado. |
 | `ix_detalle_prestamo_prestamo_estado`, `uq_detalle_prestamo_implemento_pendiente` | Unidades pendientes de un préstamo o de un usuario. |
 | `ix_sancion_usuario_vigente` (parcial, `estado = 'ACTIVA'`) | Sanción vigente de un usuario. |
@@ -151,10 +152,10 @@ es utilizable, ejecute antes `SET enable_seqscan = off;`. La prueba
 
 ## 6. Migraciones: aplicación y reversión
 
-- **Desde cero:** con una base vacía, Flyway aplica V1 a V9 al arrancar
+- **Desde cero:** con una base vacía, Flyway aplica V1 a V10 al arrancar
   (`mvn spring-boot:run`) o en las pruebas (`mvn clean test` con Testcontainers).
 - **Incremental:** una base existente recibe únicamente las migraciones nuevas
-  hasta V9 en el siguiente arranque. Se comprueba en `flyway_schema_history`.
+  hasta V10 en el siguiente arranque. Se comprueba en `flyway_schema_history`.
 - **Reversión: estrategia forward-only.** Flyway Community no soporta *undo*
   automático. Una migración aplicada **nunca se edita** (Flyway detecta el
   cambio de checksum y la aplicación no arranca). Para revertir:

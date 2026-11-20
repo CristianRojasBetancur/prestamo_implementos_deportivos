@@ -23,6 +23,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -84,6 +85,16 @@ class MapeoErroresTest {
 
         assertThat(ManejadorGlobalErrores.esViolacionDeUnicidad(unicidad)).isTrue();
         assertThat(ManejadorGlobalErrores.esViolacionDeUnicidad(claveForanea)).isFalse();
+    }
+
+    @Test
+    @DisplayName("Un timeout de PostgreSQL responde 503 sin filtrar detalles técnicos")
+    void timeoutDeDependencia() {
+        var respuesta = manejador.manejarDependenciaNoDisponible(
+                new QueryTimeoutException("SELECT contrasena_hash ..."), solicitud("/api/v1/prestamos"));
+
+        assertThat(respuesta.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(cuerpo(respuesta).detail()).doesNotContain("SELECT", "contrasena_hash");
     }
 
     @Test

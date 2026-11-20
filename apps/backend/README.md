@@ -116,6 +116,10 @@ docker compose down -v     # elimina también el volumen (base vacía la próxim
 | `APP_JWT_SECRETO` | local, prod | Sí | Secreto HS256 de 32 bytes o más. Ver `.env.example` para generarlo. |
 | `APP_JWT_EXPIRACION` | todos | No | Duración del token (ISO-8601). Por defecto `PT60M`. |
 | `APP_ADMIN_CORREO`, `APP_ADMIN_CONTRASENA`, `APP_ADMIN_IDENTIFICACION` | todos | No | Crea el primer ADMIN al arrancar si no existe (contraseña de 12+ caracteres). |
+| `DB_POOL_MAX`, `DB_POOL_MIN` | todos | No | Pool Hikari; por defecto 20 conexiones máximas y 5 inactivas mínimas. |
+| `DB_POOL_CONNECTION_TIMEOUT_MS`, `DB_POOL_VALIDATION_TIMEOUT_MS` | todos | No | Timeouts de adquisición y validación de conexión; por defecto 2000 ms y 1000 ms. |
+| `DB_QUERY_TIMEOUT_SECONDS`, `APP_TRANSACTION_TIMEOUT_SECONDS` | todos | No | Límite JDBC de consulta y transacción; por defecto 2 s y 5 s. |
+| `SERVER_MAX_REQUEST_HEADER_SIZE` | todos | No | Tamaño máximo de headers HTTP; por defecto 16 KiB. |
 | `SERVER_PORT` | todos | No | Por defecto `8080`. |
 | `SPRING_PROFILES_ACTIVE` | — | No | `local` si no se define. |
 
@@ -186,7 +190,7 @@ antes de llamar las rutas protegidas. El token se guarda automáticamente en
   `V2__crear_tabla_usuario.sql`).
 - Una migración aplicada nunca se edita; cualquier cambio se hace con una
   migración nueva. Hibernate solo valida el esquema (`ddl-auto: validate`).
-- Aplicadas: V1__linea_base.sql a V9__operador_historial_estado_implemento.sql.
+- Aplicadas: V1__linea_base.sql a V10__indices_listados_operativos.sql.
 - Reversión: forward-only. En local, `docker compose down -v` recrea la base
   vacía; en entornos compartidos se usa una migración correctiva. Detalle en
   `docs/agent-context/modelo-datos.md` §6.
@@ -200,3 +204,12 @@ k6 run -e BASE_URL=http://localhost:8080 performance/availability.js
 ```
 
 El umbral configurado es p95 < 1,5 s y menos de 1 % de respuestas fallidas. Ejecute la medición con datos de volumen representativo y revise el plan con `EXPLAIN (ANALYZE, BUFFERS)` sobre la consulta agregada de `DisponibilidadRepositorio`.
+
+Para medir las cinco familias críticas bajo 100 usuarios virtuales, consulte
+[`performance/README.md`](performance/README.md) y ejecute `critical-api.js`
+con tokens temporales de `ADMIN` y `PRESTADOR`. Los resultados, el dataset, la versión de
+la JVM, la configuración del pool y los planes de PostgreSQL deben conservarse
+como evidencia de BE-18. El endpoint `/actuator/health/readiness` incorpora la
+disponibilidad de PostgreSQL; `/actuator/health/liveness` solo representa el
+estado de la aplicación. La disponibilidad mensual del 99,5 % no se garantiza
+desde el entorno local.
