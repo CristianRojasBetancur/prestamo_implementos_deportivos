@@ -45,7 +45,7 @@ No se deben crear APIs, pantallas, entidades o integraciones que no estén respa
 
 ## Estructura del monorepo
 
-- `apps/backend/`: API Spring Boot gobernada por `docs/specs/BE-01-api-backend-mvp.md`; comandos y configuración en `apps/backend/README.md`.
+- `apps/backend/`: API Spring Boot gobernada por `docs/specs/BE-01-api-backend-mvp.md`; comandos y configuración en `apps/backend/README.md`. Implementa también BE-14 para registro, consulta y resolución administrativa de incidencias.
 - `apps/frontend/`: aplicación React/Vite con TypeScript; su alcance inicial está especificado en `docs/specs/FE-01-frontend-mvp.md`.
 - `docs/agent-context/`: contexto operativo para agentes.
 - `docs/source/`: documentos originales aportados por el proyecto.

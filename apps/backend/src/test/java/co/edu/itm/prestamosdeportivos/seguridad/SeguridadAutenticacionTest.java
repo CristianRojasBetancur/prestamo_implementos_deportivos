@@ -331,7 +331,8 @@ class SeguridadAutenticacionTest {
                 new Caso("POST", "/api/v1/prestamos/" + id + "/incidencias", soloPrestador),
                 new Caso("GET", "/api/v1/devoluciones", soloPrestador),
                 new Caso("GET", "/api/v1/devoluciones/" + id, soloPrestador),
-                new Caso("GET", "/api/v1/incidencias", soloPrestador),
+                new Caso("GET", "/api/v1/incidencias", Set.of(Rol.ADMIN, Rol.PRESTADOR)),
+                new Caso("PATCH", "/api/v1/incidencias/" + id + "/resolucion", soloAdmin),
                 new Caso("GET", "/api/v1/auth/me", Set.of(Rol.ADMIN, Rol.PRESTADOR)));
     }
 

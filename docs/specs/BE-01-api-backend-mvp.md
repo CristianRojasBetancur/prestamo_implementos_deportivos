@@ -74,7 +74,9 @@ Un prestador **no** es una entidad distinta: es un `Usuario` con rol
 | Buscar solicitantes y consultar su situación | — | ✔ | — |
 | Registrar y consultar préstamos | — | ✔ | — |
 | Registrar y consultar devoluciones | — | ✔ | — |
-| Registrar y consultar incidencias | — | ✔ | — |
+| Registrar incidencias | — | ✔ | — |
+| Consultar incidencias | — | ✔ | ✔ |
+| Resolver incidencias | — | — | ✔ |
 
 Toda ruta no listada como pública exige autenticación. La política de seguridad
 es *deny by default*: una ruta nueva queda protegida hasta que esta
@@ -558,6 +560,14 @@ los casos protegidos y no se repiten.
 - **Regla:** una incidencia no genera sanción por retraso. Las consecuencias
   económicas quedan fuera del alcance.
 
+### CU-18A Resolver incidencia
+- **Actor:** Administrador. **Traza:** BE-14, RF-17 y RF-18.
+- **FP:** el administrador cierra una incidencia `REGISTRADA`; el sistema
+  registra el administrador y la fecha de resolución sin borrar la incidencia
+  ni reactivar automáticamente la unidad.
+- **FA1:** incidencia inexistente → `404`.
+- **FA2:** incidencia ya `RESUELTA` → `409 INCIDENCIA_YA_RESUELTA`.
+
 ### CU-19 Consultar incidencias
 - **Actor:** Prestador. **Traza:** RU-15, HU-15, RF-17 (consulta del historial
   que registra el RF), en soporte de la vista "Incidencias" de FE-01.
@@ -608,8 +618,9 @@ los casos protegidos y no se repiten.
 | 24 | `GET /api/v1/devoluciones` | `PRESTADOR` | CU-17 | `200` paginado |
 | 25 | `GET /api/v1/devoluciones/{id}` | `PRESTADOR` | CU-17 | `200` |
 | 26 | `POST /api/v1/prestamos/{id}/incidencias` | `PRESTADOR` | CU-18 | `201` |
-| 27 | `GET /api/v1/incidencias` | `PRESTADOR` | CU-19 | `200` paginado |
-| 28 | `GET /api/v1/incidencias/{id}` | `PRESTADOR` | CU-19 | `200` |
+| 27 | `GET /api/v1/incidencias` | `PRESTADOR`, `ADMIN` | CU-19 | `200` paginado |
+| 28 | `GET /api/v1/incidencias/{id}` | `PRESTADOR`, `ADMIN` | CU-19 | `200` |
+| 29 | `PATCH /api/v1/incidencias/{id}/resolucion` | `ADMIN` | CU-18A | `200` |
 | — | `GET /actuator/health` | Público (solo estado) | RNF-02 | `200`/`503` |
 
 El endpoint 19 existe porque el prestador necesita seleccionar **unidades
@@ -994,6 +1005,10 @@ asociadas y la sanción aplicada cuando corresponda. La ruta exige el rol
 ```
 
 `GET /api/v1/incidencias?tipo=DANO` devuelve una página de este mismo objeto.
+La respuesta incluye `fechaResolucion` y `resueltoPor` cuando el estado es
+`RESUELTA`. La resolución administrativa se realiza con
+`PATCH /api/v1/incidencias/{id}/resolucion` sin cuerpo y no cambia
+automáticamente el estado de la unidad.
 
 ## 11. Persistencia e integridad
 
@@ -1020,7 +1035,7 @@ asociadas y la sanción aplicada cuando corresponda. La ruta exige el rol
   `ImplementoDeportivo.version` protege la edición administrativa concurrente.
   Un `ObjectOptimisticLockingFailureException` o una violación del índice único
   se traducen a `409 CONFLICTO_CONCURRENCIA`.
-- Transacciones: CU-14, CU-16 y CU-18 son `@Transactional` de extremo a extremo
+- Transacciones: CU-14, CU-16, CU-18 y CU-18A son `@Transactional` de extremo a extremo
   en el servicio de aplicación. No se hace ninguna escritura fuera de esa
   transacción (RNF-05).
 - Datos iniciales:
@@ -1068,8 +1083,8 @@ SOLID del Entregable 2.
 | RU-12 / HU-12 | CU-14 | 20 |
 | RU-13 / HU-13 | CU-16 | 23 |
 | RU-14 / HU-14 | CU-17 | 24, 25 |
-| RU-15 / HU-15 | CU-16, CU-18, CU-19 | 23, 26, 27, 28 |
-| RU-16 / HU-16 | CU-16, CU-18, CU-20 | 23, 26 |
+| RU-15 / HU-15 | CU-16, CU-18, CU-19, CU-18A | 23, 26, 27, 28, 29 |
+| RU-16 / HU-16 | CU-16, CU-18, CU-20, CU-18A | 23, 26, 29 |
 
 ### 13.2 Requisitos funcionales
 
@@ -1091,8 +1106,8 @@ SOLID del Entregable 2.
 | RF-14 Consulta de préstamos | CU-13, CU-15; endpoints 18, 21, 22 |
 | RF-15 Registro de devolución | CU-16; endpoint 23 |
 | RF-16 Estado del implemento devuelto | CU-16 (`condicion` por ítem) |
-| RF-17 Registro de incidencias | CU-16 (incidencia en la devolución), CU-18, CU-19; endpoints 23, 26, 27, 28 |
-| RF-18 Actualización de inventario por devolución o incidencia | CU-16, CU-18; §6.2 |
+| RF-17 Registro de incidencias | CU-16 (incidencia en la devolución), CU-18, CU-19, CU-18A; endpoints 23, 26, 27, 28, 29 |
+| RF-18 Actualización de inventario por devolución o incidencia | CU-16, CU-18, CU-18A; §6.2 |
 | "RF-19" (referencia de HU-14/RU-14) | Ver `D-02`. El comportamiento queda cubierto por CU-17 y los endpoints 24 y 25, trazados a RU-14/HU-14. |
 
 ### 13.3 Requisitos no funcionales
@@ -1138,7 +1153,7 @@ SOLID del Entregable 2.
 | `D-14` | ¿El administrador opera préstamos? | No. Los endpoints de operación son exclusivos de `PRESTADOR` (RNF-03). Si se requiere, se amplía en otra especificación. | Matriz de actores |
 | `D-15` | En el formulario de login de FE-01 la persona elige su rol. | El rol lo determina **solo** el servidor a partir de la cuenta. El selector del frontend es una ayuda visual y no se envía a la API. | FE-01; RNF-03 |
 | `D-16` | El issue de autenticación pide un cierre de sesión "según el mecanismo elegido", y la versión inicial de BE-01 no tenía endpoint. | Se agrega `POST /api/v1/auth/logout`, que revoca todas las sesiones del usuario incrementando `version_credenciales`. Con JWT stateless es la única forma de invalidar un token antes de que expire sin mantener una lista de tokens revocados. | Issue de autenticación; §5 |
-| `D-17` | Autorización por rol. | Doble barrera: matriz de rutas en `ConfiguracionSeguridad` (por prefijo y método, según §3.2 y §9) y `@PreAuthorize` en los controladores. `GET /implementos/prestables` es de PRESTADOR, aunque el resto de `/implementos` sea de ADMIN. | RNF-03 |
+| `D-17` | Autorización por rol. | Doble barrera: matriz de rutas en `ConfiguracionSeguridad` (por prefijo y método, según §3.2 y §9) y `@PreAuthorize` en los controladores. `GET /implementos/prestables` es de PRESTADOR, aunque el resto de `/implementos` sea de ADMIN. `GET /incidencias` admite PRESTADOR y ADMIN; resolver admite solo ADMIN. | RNF-03 |
 
 ### Pendientes que requieren confirmación del equipo
 

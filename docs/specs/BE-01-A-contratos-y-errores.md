@@ -64,7 +64,7 @@ reutiliza** con otro significado.
 | 409 | `CONFLICTO_UNICIDAD` | Duplicado (código, correo, identificación, nombre). |
 | 409 | `CONFLICTO_INTEGRIDAD` | Otra violación de integridad de la base de datos. |
 | 409 | `CONFLICTO_CONCURRENCIA` | Bloqueo optimista o pesimista; otra operación modificó los datos. |
-| 409 | `IMPLEMENTO_NO_DISPONIBLE`, `TRANSICION_INVALIDA`, `PRESTAMO_FINALIZADO`, `UNIDAD_YA_RESUELTA` | Conflictos de estado de BE-01. |
+| 409 | `IMPLEMENTO_NO_DISPONIBLE`, `TRANSICION_INVALIDA`, `PRESTAMO_FINALIZADO`, `UNIDAD_YA_RESUELTA`, `INCIDENCIA_YA_RESUELTA` | Conflictos de estado de BE-01 y BE-14. |
 | 415 | `TIPO_CONTENIDO_NO_SOPORTADO` | El cuerpo no es `application/json`. |
 | 422 | `LIMITE_IMPLEMENTOS_EXCEDIDO`, `USUARIO_NO_HABILITADO`, `USUARIO_SANCIONADO`, `USUARIO_CON_PRESTAMOS_VENCIDOS`, `INCIDENCIA_REQUERIDA`, `IMPLEMENTO_NO_PERTENECE_AL_PRESTAMO`, `TIPO_INCIDENCIA_NO_PERMITIDO`, `JUSTIFICACION_REQUERIDA`, `CATEGORIA_INACTIVA` | Reglas de negocio de BE-01. |
 | 500 | `ERROR_INTERNO` | Error no previsto. Mensaje genérico; la traza solo va al log, con el `correlacionId`. |

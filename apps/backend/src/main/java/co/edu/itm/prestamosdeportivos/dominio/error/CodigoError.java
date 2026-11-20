@@ -49,6 +49,8 @@ public enum CodigoError {
             "El préstamo ya está finalizado y no admite más operaciones."),
     UNIDAD_YA_RESUELTA(TipoError.CONFLICTO, "Unidad ya resuelta",
             "La unidad ya fue devuelta o resuelta mediante una incidencia."),
+    INCIDENCIA_YA_RESUELTA(TipoError.CONFLICTO, "Incidencia ya resuelta",
+            "La incidencia ya fue resuelta y no admite otra resolución."),
     // 422
     LIMITE_IMPLEMENTOS_EXCEDIDO(TipoError.REGLA_NEGOCIO, "Límite de implementos excedido",
             "El usuario superaría el máximo de 4 implementos activos."),
