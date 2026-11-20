@@ -70,6 +70,18 @@ class FlujoCompletoApiIntegracionTest {
         String admin = login(escenario.admin());
         String prestador = login(escenario.prestador());
 
+        String nuevaIdentificacion = "USR-" + escenario.admin().identificador();
+        MvcResult altaUsuario = mvc.perform(post("/api/v1/usuarios").with(bearer(prestador))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"identificacion\":\"" + nuevaIdentificacion
+                        + "\",\"nombres\":\"Nuevo\",\"apellidos\":\"Solicitante\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.activo").value(true))
+                .andReturn();
+        UUID nuevoUsuarioId = id(altaUsuario);
+        mvc.perform(get("/api/v1/usuarios/" + nuevoUsuarioId + "/situacion").with(bearer(prestador)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.usuario.id").value(nuevoUsuarioId.toString()));
+
         String nuevoPrestador = "NEW-" + escenario.admin().identificador();
         String nuevoCorreo = "nuevo." + escenario.admin().identificador().toLowerCase() + "@pruebas.invalid";
         MvcResult altaPrestador = mvc.perform(post("/api/v1/providers").with(bearer(admin))
@@ -154,10 +166,14 @@ class FlujoCompletoApiIntegracionTest {
                 .andExpect(jsonPath("$.unidadesPendientes").value(0));
         mvc.perform(get("/api/v1/incidencias/" + incidenciaId).with(bearer(admin)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("REGISTRADA"));
+        mvc.perform(get("/api/v1/incidencias").with(bearer(admin)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.contenido").isArray());
         mvc.perform(patch("/api/v1/incidencias/" + incidenciaId + "/resolucion").with(bearer(admin)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("RESUELTA"));
         mvc.perform(get("/api/v1/devoluciones").with(bearer(prestador)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.contenido").isArray());
+        mvc.perform(get("/api/v1/devoluciones").with(bearer(admin)))
+                .andExpect(status().isForbidden());
 
         mvc.perform(post("/api/v1/auth/logout").with(bearer(prestador))).andExpect(status().isNoContent());
         mvc.perform(get("/api/v1/auth/me").with(bearer(prestador)))

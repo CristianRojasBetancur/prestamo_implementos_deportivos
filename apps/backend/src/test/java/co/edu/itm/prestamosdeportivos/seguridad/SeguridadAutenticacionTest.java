@@ -319,6 +319,7 @@ class SeguridadAutenticacionTest {
                 new Caso("PATCH", "/api/v1/implementos/" + id + "/estado", soloAdmin),
                 new Caso("GET", "/api/v1/implementos/prestables", soloPrestador),
                 new Caso("GET", "/api/v1/usuarios", soloPrestador),
+                new Caso("POST", "/api/v1/usuarios", soloPrestador),
                 new Caso("GET", "/api/v1/usuarios/" + id + "/situacion", soloPrestador),
                 new Caso("GET", "/api/v1/prestamos", soloPrestador),
                 new Caso("GET", "/api/v1/prestamos/" + id, soloPrestador),

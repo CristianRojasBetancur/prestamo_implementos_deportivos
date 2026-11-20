@@ -25,11 +25,12 @@ HTTP.
 
 ## Exclusiones y límites
 
-- No se implementa backend, autenticación real, persistencia de negocio ni
-  autorización de seguridad.
-- Los registros visibles en Figma se reproducen como datos de demostración en
-  memoria para que coincidan las pantallas; no representan inventario real y se
-  reinician al recargar.
+- No se implementa backend, persistencia de negocio ni autorización de
+  seguridad; la autenticación real y el consumo de API se implementan según
+  FE-02.
+- La reproducción visual inicial fue validada con datos de demostración. La
+  integración operativa y el reemplazo de esos datos por contratos reales se
+  define en `FE-02-integracion-api-frontend.md`.
 - No se asumen endpoints, payloads, credenciales ni reglas que no estén en una
   especificación de API.
 - Las reglas de negocio y la autorización real corresponden al backend.
@@ -40,8 +41,9 @@ HTTP.
 - Usuario: consulta disponibilidad y filtros por categoría.
 - Administrador: consulta, registra, actualiza y desactiva prestadores; consulta,
   registra, actualiza y retira implementos.
-- Prestador: consulta situación de usuario y préstamos; registra préstamos,
-  devoluciones e incidencias y consulta historial.
+- Prestador: busca y, si es necesario, registra solicitantes operativos; consulta
+  su situación y préstamos; registra préstamos, devoluciones e incidencias y
+  consulta historial.
 - Autenticación: presenta acceso y estado de sesión, sin simular validación real.
 
 Las operaciones que requieran API sin contrato disponible deben mostrar un
@@ -54,8 +56,9 @@ estado de servicio no configurado/no disponible y no simular éxito.
 - Cliente HTTP único; adaptadores por recurso con tipos de entrada y salida.
 - URL base configurada por `VITE_API_BASE_URL`; errores HTTP normalizados en un
   único punto.
-- Las pantallas internas se pueden recorrer en modo demostración. La sesión es
-  estado de interfaz y no valida credenciales reales.
+- Las pantallas internas requieren una sesión válida de la API. Sin API
+  configurada o disponible se muestran estados vacíos/error y no se confirman
+  operaciones.
 
 ## Sistema visual Figma
 
@@ -82,11 +85,11 @@ estado de servicio no configurado/no disponible y no simular éxito.
    vacío y sin resultados.
 4. Las tablas, formularios y flujos por rol conservan los campos, jerarquías,
    acciones, pasos y estados que aparecen en los frames de Figma.
-5. Las operaciones de demostración modifican solo el estado en memoria y no
-   presentan la sesión como autenticación real.
+5. Las operaciones autorizadas consumen la API y no presentan una operación
+   como exitosa si la respuesta no fue exitosa.
 6. Comunicación HTTP, tipos y errores están aislados de las vistas.
 7. La UI es usable con teclado, etiquetas accesibles y soporte desde 360 px.
-8. Hay pruebas para navegación, catálogo, operaciones de demostración y errores.
+8. Hay pruebas para navegación, catálogo, operaciones autorizadas y errores.
 9. No hay conexiones directas desde el frontend a PostgreSQL ni reglas de
    negocio autoritativas en cliente.
 

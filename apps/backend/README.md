@@ -52,6 +52,10 @@ Todos los comandos se ejecutan desde `apps/backend/`.
    Al arrancar, Flyway aplica las migraciones pendientes de
    `src/main/resources/db/migration`.
 
+   Si la API se ejecuta en el contenedor `prestamo-backend` con el código
+   montado como volumen, reinícielo después de modificar controladores para que
+   Spring recomponga las rutas: `docker restart prestamo-backend`.
+
 4. Comprobar la salud de la aplicación y de la base de datos:
 
    ```bash
@@ -160,6 +164,7 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 | `GET /api/v1/categorias` | Público | Lista categorías activas. |
 | `POST/GET/PUT /api/v1/categorias/{id}` | `ADMIN` | Gestiona categorías. |
 | `POST/GET/PATCH /api/v1/inventory/units` | `ADMIN` | Gestiona unidades del inventario. |
+| `GET /api/v1/implementos/prestables` | `PRESTADOR` | Lista unidades físicas DISPONIBLE para seleccionar en un préstamo. |
 | `POST /api/v1/providers` | `ADMIN` | Registra un prestador con contraseña inicial. |
 | `GET /api/v1/providers` | `ADMIN` | Lista prestadores con filtros y paginación. |
 | `GET /api/v1/providers/{id}` | `ADMIN` | Consulta un prestador, incluso inactivo. |
@@ -169,6 +174,13 @@ Paquete raíz: `co.edu.itm.prestamosdeportivos`
 | `GET /api/v1/prestamos/{id}` / `/api/v1/loans/{id}` | `PRESTADOR` | Consulta el detalle, devoluciones e incidencias. |
 | `POST /api/v1/prestamos` / `/api/v1/loans` | `PRESTADOR` | Registra un préstamo de 1 a 4 unidades. |
 | `GET /api/v1/usuarios/{userId}/situacion` / `/users/{userId}/loan-situation` | `PRESTADOR` | Consulta la situación de préstamos del usuario. |
+| `GET /api/v1/usuarios` | `PRESTADOR` | Busca solicitantes para preparar un préstamo. |
+| `POST /api/v1/usuarios` | `PRESTADOR` | Registra un solicitante `USER` con identificación, nombres y apellidos. |
+| `POST /api/v1/prestamos/{id}/devoluciones` | `PRESTADOR` | Registra una devolución parcial o completa. |
+| `GET /api/v1/devoluciones`, `GET /api/v1/devoluciones/{id}` | `PRESTADOR` | Consulta devoluciones paginadas y su detalle. |
+| `POST /api/v1/prestamos/{id}/incidencias` | `PRESTADOR` | Registra una pérdida o robo independiente. |
+| `GET /api/v1/incidencias`, `GET /api/v1/incidencias/{id}` | `PRESTADOR`, `ADMIN` | Consulta incidencias y su detalle. |
+| `PATCH /api/v1/incidencias/{id}/resolucion` | `ADMIN` | Resuelve una incidencia registrada. |
 
 Las rutas de prestadores requieren rol `ADMIN`; reciben `401` sin autenticación
 y `403` con otro rol. La autenticación JWT se obtiene mediante
