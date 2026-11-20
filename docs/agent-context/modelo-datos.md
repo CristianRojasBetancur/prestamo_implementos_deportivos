@@ -151,11 +151,10 @@ es utilizable, ejecute antes `SET enable_seqscan = off;`. La prueba
 
 ## 6. Migraciones: aplicación y reversión
 
-- **Desde cero:** con una base vacía, Flyway aplica V1 y V2 al arrancar
-  (`mvn spring-boot:run`) o en las pruebas (`mvn test` con Testcontainers).
-- **Incremental:** una base que ya tiene V1 (por ejemplo, la de `compose.yaml`
-  creada con la inicialización del backend) recibe solo V2 en el siguiente
-  arranque. Se comprueba en `flyway_schema_history`.
+- **Desde cero:** con una base vacía, Flyway aplica V1 a V9 al arrancar
+  (`mvn spring-boot:run`) o en las pruebas (`mvn clean test` con Testcontainers).
+- **Incremental:** una base existente recibe únicamente las migraciones nuevas
+  hasta V9 en el siguiente arranque. Se comprueba en `flyway_schema_history`.
 - **Reversión: estrategia forward-only.** Flyway Community no soporta *undo*
   automático. Una migración aplicada **nunca se edita** (Flyway detecta el
   cambio de checksum y la aplicación no arranca). Para revertir:

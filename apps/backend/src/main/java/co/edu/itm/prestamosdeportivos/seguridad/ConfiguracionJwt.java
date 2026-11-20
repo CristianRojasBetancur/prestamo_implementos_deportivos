@@ -1,6 +1,7 @@
 package co.edu.itm.prestamosdeportivos.seguridad;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -11,9 +12,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 
 /**
  * Codificador y decodificador JWT HS256 con la misma clave simétrica. El
@@ -36,11 +39,14 @@ public class ConfiguracionJwt {
     }
 
     @Bean
-    JwtDecoder decodificadorJwt(SecretKey claveFirmaJwt, PropiedadesJwt propiedades) {
+    JwtDecoder decodificadorJwt(SecretKey claveFirmaJwt, PropiedadesJwt propiedades, Clock reloj) {
         NimbusJwtDecoder decodificador = NimbusJwtDecoder.withSecretKey(claveFirmaJwt)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
-        decodificador.setJwtValidator(JwtValidators.createDefaultWithIssuer(propiedades.emisor()));
+        JwtTimestampValidator fechas = new JwtTimestampValidator();
+        fechas.setClock(reloj);
+        decodificador.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                new JwtIssuerValidator(propiedades.emisor()), fechas));
         return decodificador;
     }
 }
