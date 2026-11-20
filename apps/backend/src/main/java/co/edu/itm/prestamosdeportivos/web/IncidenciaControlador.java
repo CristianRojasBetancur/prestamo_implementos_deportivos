@@ -11,6 +11,7 @@ import co.edu.itm.prestamosdeportivos.persistencia.IncidenciaFiltros;
 import co.edu.itm.prestamosdeportivos.seguridad.UsuarioAutenticado;
 import co.edu.itm.prestamosdeportivos.web.comun.PaginaRespuesta;
 import co.edu.itm.prestamosdeportivos.web.comun.ParametrosPagina;
+import io.swagger.v3.oas.annotations.Operation;
 import co.edu.itm.prestamosdeportivos.web.dto.IncidenciaDto.IncidenciaRespuesta;
 import co.edu.itm.prestamosdeportivos.web.dto.IncidenciaDto.IncidenciaResumenRespuesta;
 import co.edu.itm.prestamosdeportivos.web.dto.IncidenciaDto.RegistrarIncidenciaSolicitud;
@@ -50,6 +51,7 @@ public class IncidenciaControlador {
 
     @GetMapping("/incidencias")
     @PreAuthorize("hasAnyRole('PRESTADOR', 'ADMIN')")
+    @Operation(summary = "Consultar incidencias", description = "Lista incidencias con relaciones de unidad, usuario, tipo, estado y fecha.")
     public PaginaRespuesta<IncidenciaResumenRespuesta> listar(
             @RequestParam(required = false) UUID prestamoId,
             @RequestParam(required = false) UUID usuarioId,
@@ -66,6 +68,7 @@ public class IncidenciaControlador {
 
     @GetMapping("/incidencias/{id}")
     @PreAuthorize("hasAnyRole('PRESTADOR', 'ADMIN')")
+    @Operation(summary = "Consultar detalle de incidencia", description = "Consulta una incidencia sin modificar su estado.")
     public IncidenciaRespuesta consultar(@PathVariable UUID id) {
         return servicio.consultar(id);
     }

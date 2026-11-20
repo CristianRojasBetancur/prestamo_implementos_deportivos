@@ -21,20 +21,26 @@ public final class PrestamoEspecificaciones {
     public static Specification<Prestamo> porFiltros(PrestamoFiltros filtros) {
         return (root, query, cb) -> {
             List<Predicate> predicados = new ArrayList<>();
-            if (filtros.estado() != null) {
-                if (filtros.estado() == EstadoPrestamo.VENCIDO) {
-                    var subconsulta = query.subquery(java.util.UUID.class);
-                    var detalle = subconsulta.from(co.edu.itm.prestamosdeportivos.dominio.DetallePrestamo.class);
-                    subconsulta.select(detalle.get("prestamo").get("id"));
-                    subconsulta.where(
-                            cb.equal(detalle.get("prestamo").get("id"), root.get("id")),
-                            cb.equal(detalle.get("estado"), EstadoDetallePrestamo.PENDIENTE_DEVOLUCION));
-                    predicados.add(cb.notEqual(root.get("estado"), EstadoPrestamo.FINALIZADO));
-                    predicados.add(cb.lessThan(root.get("fechaLimiteDevolucion"), filtros.ahora()));
-                    predicados.add(cb.exists(subconsulta));
-                } else {
-                    predicados.add(cb.equal(root.get("estado"), filtros.estado()));
+            if (filtros.estados() != null && !filtros.estados().isEmpty()) {
+                List<Predicate> estados = new ArrayList<>();
+                var subconsulta = query.subquery(java.util.UUID.class);
+                var detalle = subconsulta.from(co.edu.itm.prestamosdeportivos.dominio.DetallePrestamo.class);
+                subconsulta.select(detalle.get("prestamo").get("id"));
+                subconsulta.where(
+                        cb.equal(detalle.get("prestamo").get("id"), root.get("id")),
+                        cb.equal(detalle.get("estado"), EstadoDetallePrestamo.PENDIENTE_DEVOLUCION));
+                Predicate vencidoCalculado = cb.and(
+                        cb.notEqual(root.get("estado"), EstadoPrestamo.FINALIZADO),
+                        cb.lessThan(root.get("fechaLimiteDevolucion"), filtros.ahora()),
+                        cb.exists(subconsulta));
+                for (EstadoPrestamo estado : filtros.estados()) {
+                    if (estado == EstadoPrestamo.VENCIDO) {
+                        estados.add(cb.or(cb.equal(root.get("estado"), EstadoPrestamo.VENCIDO), vencidoCalculado));
+                    } else {
+                        estados.add(cb.and(cb.equal(root.get("estado"), estado), cb.not(vencidoCalculado)));
+                    }
                 }
+                predicados.add(cb.or(estados.toArray(Predicate[]::new)));
             }
             if (filtros.usuarioId() != null) {
                 predicados.add(cb.equal(root.get("usuario").get("id"), filtros.usuarioId()));

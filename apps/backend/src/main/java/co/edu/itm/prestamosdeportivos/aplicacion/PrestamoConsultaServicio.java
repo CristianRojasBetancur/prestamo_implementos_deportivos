@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -67,14 +68,14 @@ public class PrestamoConsultaServicio {
     public PaginaRespuesta<PrestamoResumenRespuesta> listar(int pagina, int tamano, String orden, String estado,
             UUID usuarioId, String identificacion, OffsetDateTime desde, OffsetDateTime hasta, String texto) {
         validarPaginacion(pagina, tamano);
-        EstadoPrestamo estadoFiltro = parsearEstado(estado);
+        Set<EstadoPrestamo> estadosFiltro = parsearEstados(estado);
         Instant ahora = reloj.instant();
         Instant desdeInstant = desde == null ? null : desde.toInstant();
         Instant hastaInstant = hasta == null ? null : hasta.toInstant();
         if (desdeInstant != null && hastaInstant != null && !desdeInstant.isBefore(hastaInstant)) {
             throw invalidacion("El intervalo de fechas debe ser [desde, hasta).", "desde");
         }
-        var filtros = new PrestamoFiltros(estadoFiltro, usuarioId, identificacion, desdeInstant, hastaInstant, texto, ahora);
+        var filtros = new PrestamoFiltros(estadosFiltro, usuarioId, identificacion, desdeInstant, hastaInstant, texto, ahora);
         var paginaResultado = prestamos.findAll(PrestamoEspecificaciones.porFiltros(filtros), pageable(pagina, tamano, orden));
         List<UUID> ids = paginaResultado.getContent().stream().map(Prestamo::getId).toList();
         Map<UUID, Conteo> cantidades = ids.isEmpty() ? Map.of() : detalles.contarPorPrestamos(ids).stream()
@@ -152,16 +153,23 @@ public class PrestamoConsultaServicio {
         return PageRequest.of(pagina, tamano, pageableSort(orden));
     }
 
-    private EstadoPrestamo parsearEstado(String valor) {
+    private Set<EstadoPrestamo> parsearEstados(String valor) {
         if (valor == null || valor.isBlank()) {
             return null;
         }
+        Set<EstadoPrestamo> estados = new LinkedHashSet<>();
         try {
-            EstadoPrestamo estado = EstadoPrestamo.valueOf(valor.trim().toUpperCase(Locale.ROOT));
-            if (!ESTADOS.contains(estado)) {
-                throw new IllegalArgumentException();
+            for (String parte : valor.split(",", -1)) {
+                if (parte.isBlank()) {
+                    throw new IllegalArgumentException();
+                }
+                EstadoPrestamo estado = EstadoPrestamo.valueOf(parte.trim().toUpperCase(Locale.ROOT));
+                if (!ESTADOS.contains(estado)) {
+                    throw new IllegalArgumentException();
+                }
+                estados.add(estado);
             }
-            return estado;
+            return estados;
         } catch (IllegalArgumentException ex) {
             throw invalidacion("El estado del préstamo no es válido.", "estado");
         }

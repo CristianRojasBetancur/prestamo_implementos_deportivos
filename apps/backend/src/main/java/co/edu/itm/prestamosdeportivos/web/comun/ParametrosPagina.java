@@ -46,6 +46,10 @@ public record ParametrosPagina(
             throw new ExcepcionDominio(CodigoError.VALIDACION_FALLIDA, CodigoError.VALIDACION_FALLIDA.detallePorDefecto(),
                     List.of(new ErrorCampo("orden", "solo admite: " + String.join(", ", camposPermitidos.stream().sorted().toList()))));
         }
-        return PageRequest.of(numero, cantidad, Sort.by(Sort.Direction.fromString(partes[1]), partes[0]));
+        Sort ordenSolicitado = Sort.by(Sort.Direction.fromString(partes[1]), partes[0]);
+        if (!"id".equals(partes[0])) {
+            ordenSolicitado = ordenSolicitado.and(Sort.by(Sort.Direction.ASC, "id"));
+        }
+        return PageRequest.of(numero, cantidad, ordenSolicitado);
     }
 }

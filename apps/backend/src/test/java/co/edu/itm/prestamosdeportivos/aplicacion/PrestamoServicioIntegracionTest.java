@@ -57,13 +57,13 @@ class PrestamoServicioIntegracionTest {
     @Autowired private MockMvc mvc;
 
     @Test
-    @DisplayName("POST alias inglés crea préstamo con operador y responde 201")
-    void controladorRegistraConAliasIngles() throws Exception {
+    @DisplayName("POST canónico crea préstamo con operador y responde 201")
+    void controladorRegistraConRutaCanonica() throws Exception {
         var f=fixture(EstadoImplemento.DISPONIBLE);
         var auth=UsernamePasswordAuthenticationToken.authenticated(f.operador(),"test",
                 List.of(new SimpleGrantedAuthority("ROLE_PRESTADOR")));
-        mvc.perform(post("/api/v1/loans").with(authentication(auth)).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"userId\":\""+f.usuario().getId()+"\",\"unitIds\":[\""+f.unidades().get(0).getId()+"\"]}"))
+        mvc.perform(post("/api/v1/prestamos").with(authentication(auth)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"usuarioId\":\""+f.usuario().getId()+"\",\"implementoIds\":[\""+f.unidades().get(0).getId()+"\"]}"))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("/api/v1/prestamos/")))
                 .andExpect(jsonPath("$.estado").value("VIGENTE"))

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SituacionUsuarioControlador {
     private final SituacionUsuarioServicio servicio;
     public SituacionUsuarioControlador(SituacionUsuarioServicio servicio){this.servicio=servicio;}
-    @GetMapping({"/usuarios/{userId}/situacion", "/users/{userId}/loan-situation"})
+    @GetMapping("/usuarios/{userId}/situacion")
     @PreAuthorize("hasRole('PRESTADOR')")
     @Operation(summary="Consultar situación de préstamo del usuario",description="Informativa; no modifica datos y siempre vuelve a validar al registrar un préstamo.")
     public SituacionUsuarioDto.Respuesta consultar(@PathVariable UUID userId){return servicio.consultar(userId);}
