@@ -13,12 +13,16 @@ Ejecutar desde `apps/backend/` (detalle en `README.md`):
 - `mvn clean test`: unitarias e integración con el perfil `test` y PostgreSQL efímero de Testcontainers (requiere Docker).
 - `mvn -Dtest=FlujoCompletoApiIntegracionTest test`: flujo E2E HTTP completo.
 - `docker compose down` / `docker compose down -v`: detener la base (con `-v` se borran los datos).
+- Desde la raíz, `docker compose up -d --build` levanta la API empaquetada y PostgreSQL; `./scripts/smoke-test.sh` verifica el stack.
+- `docker build --no-cache -t prestamo-backend ./apps/backend`: construir la imagen multi-stage, cuyo runtime se ejecuta como usuario no root.
+- `mvn clean package`: empaquetar el JAR sin ejecutar la suite completa.
 
 ## Estructura y configuración
 
 - Paquete raíz `co.edu.itm.prestamosdeportivos`: `web` (controladores y DTO), `web.error` (manejo global de errores), `aplicacion` (servicios y casos de uso), `dominio` (entidades, estados y políticas), `persistencia` (repositorios), `configuracion` (cadena de seguridad, CORS, reloj, propiedades) y `seguridad` (JWT, contraseñas, principal autenticado).
 - Perfiles: `local` (por defecto, lee `.env`), `test` (Testcontainers) y `prod` (todas las variables obligatorias, sin valores por defecto).
 - Ningún secreto se versiona: credenciales y orígenes CORS provienen de variables de entorno. `.env` está en `.gitignore`.
+- `.env.example` documenta variables ficticias; la imagen Docker no copia archivos de entorno, pruebas, documentación ni `target/`.
 - El esquema se gestiona solo con migraciones Flyway en `src/main/resources/db/migration` (`V<n>__descripcion.sql`); Hibernate usa `ddl-auto: validate`. No editar migraciones ya aplicadas (estrategia forward-only).
 - El modelo de datos (tablas, constraints, índices, mapeo de enumeraciones y decisiones DM-xx) está en `docs/agent-context/modelo-datos.md`; toda migración que lo cambie debe actualizarlo.
 - Las entidades JPA viven en `dominio` y los repositorios en `persistencia`. Los enums se persisten como `varchar` con el nombre de la constante y un `CHECK`; renombrar una constante exige migración.
@@ -66,3 +70,11 @@ No introducir un patrón solo por cumplir una lista. Consultar `docs/agent-conte
 - Los fixtures reproducibles viven exclusivamente en `src/test/java/.../soporte`; usan correos
   `pruebas.invalid`, contraseñas generadas por escenario y un reloj mutable de prueba.
   Nunca deben trasladarse a `src/main` ni a perfiles `local`/`prod`.
+
+## Verificación y decisiones
+
+- La trazabilidad de aceptación está en `docs/mvp-acceptance-checklist.md`.
+- Las decisiones de operación, seguridad, transacciones, concurrencia, estados,
+  sanciones y la discrepancia RF-19 están en `docs/adr/001-operacion-y-verificacion-del-backend-mvp.md`.
+- RNF-01 requiere evidencia reproducible de k6; RNF-02 no puede demostrar 99,5 %
+  mensual desde el entorno local y se reporta como limitación operacional.

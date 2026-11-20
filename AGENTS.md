@@ -47,10 +47,13 @@ No se deben crear APIs, pantallas, entidades o integraciones que no estén respa
 
 - `apps/backend/`: API Spring Boot gobernada por `docs/specs/BE-01-api-backend-mvp.md`; comandos y configuración en `apps/backend/README.md`. Implementa también BE-14 para registro, consulta y resolución administrativa de incidencias y BE-15 para coordinar disponibilidad mediante Mediator.
 - `apps/frontend/`: aplicación React/Vite con TypeScript; su alcance inicial está especificado en `docs/specs/FE-01-frontend-mvp.md`.
+- `docker-compose.yaml`: entrada oficial para levantar PostgreSQL y la API empaquetada desde la raíz.
+- `scripts/smoke-test.sh`: smoke test reproducible de health, disponibilidad pública y autorización.
 - `docs/agent-context/`: contexto operativo para agentes.
 - `docs/source/`: documentos originales aportados por el proyecto.
 - `docs/specs/`: especificaciones SDD (`FE-01` frontend, `BE-01` backend); índice en `docs/specs/README.md`.
 - `.codebase-memory/`: artefactos de indexación; no tratarlo como documentación funcional.
+- `README.md`: comandos oficiales para levantar frontend, backend y base de datos.
 
 ## Mantenimiento obligatorio del contexto
 

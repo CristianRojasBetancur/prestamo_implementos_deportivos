@@ -52,10 +52,6 @@ Todos los comandos se ejecutan desde `apps/backend/`.
    Al arrancar, Flyway aplica las migraciones pendientes de
    `src/main/resources/db/migration`.
 
-   Si la API se ejecuta en el contenedor `prestamo-backend` con el código
-   montado como volumen, reinícielo después de modificar controladores para que
-   Spring recomponga las rutas: `docker restart prestamo-backend`.
-
 4. Comprobar la salud de la aplicación y de la base de datos:
 
    ```bash
@@ -66,6 +62,21 @@ Todos los comandos se ejecutan desde `apps/backend/`.
    En PowerShell: `Invoke-RestMethod http://localhost:8080/actuator/health`.
    Si PostgreSQL no está disponible, el endpoint responde `503` con
    `"status":"DOWN"`.
+
+Para levantar API y PostgreSQL juntos desde la raíz del repositorio, use el
+Compose oficial:
+
+```bash
+cd ../..
+cp .env.example .env
+docker compose up -d --build
+docker compose ps
+```
+
+La imagen se construye con `Dockerfile`, compila en una etapa Maven separada y
+ejecuta el JAR con un usuario no root. El runtime no recibe archivos `.env` ni
+secretos desde la imagen; todas las credenciales llegan como variables de
+entorno.
 
 ## Pruebas
 
@@ -99,6 +110,10 @@ docker compose stop        # detiene PostgreSQL y conserva los datos
 docker compose down        # elimina el contenedor y conserva el volumen
 docker compose down -v     # elimina también el volumen (base vacía la próxima vez)
 ```
+
+Desde la raíz, esos mismos comandos administran el stack completo. El script
+`../../scripts/smoke-test.sh` comprueba health, readiness, disponibilidad
+pública y rechazo de una ruta protegida sin autenticación.
 
 ## Perfiles y variables de entorno
 
@@ -225,3 +240,10 @@ como evidencia de BE-18. El endpoint `/actuator/health/readiness` incorpora la
 disponibilidad de PostgreSQL; `/actuator/health/liveness` solo representa el
 estado de la aplicación. La disponibilidad mensual del 99,5 % no se garantiza
 desde el entorno local.
+
+## CI
+
+`.github/workflows/ci.yml` ejecuta pruebas Maven con Testcontainers, análisis
+básico de dependencias, pruebas y build del frontend, validación de migraciones,
+construcción limpia de Docker, Compose, smoke test y comprobación de ejecución
+no root. También falla si se rastrean secretos o artefactos de build.
