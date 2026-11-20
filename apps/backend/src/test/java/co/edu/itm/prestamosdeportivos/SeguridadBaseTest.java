@@ -58,7 +58,9 @@ class SeguridadBaseTest {
         HttpResponse<String> respuesta = enviar(HttpRequest.newBuilder(uri("/v3/api-docs")).GET().build());
 
         assertThat(respuesta.statusCode()).isEqualTo(200);
-        assertThat(respuesta.body()).contains("bearerAuth", "ProblemaRespuesta", "correlacionId");
+        assertThat(respuesta.body()).contains("bearerAuth", "ProblemaRespuesta", "correlacionId",
+                "/api/v1/usuarios", "/api/v1/prestamos");
+        assertThat(respuesta.body()).doesNotContain("/api/v1/loans", "/api/v1/users/{userId}/loan-situation");
     }
 
     @Test

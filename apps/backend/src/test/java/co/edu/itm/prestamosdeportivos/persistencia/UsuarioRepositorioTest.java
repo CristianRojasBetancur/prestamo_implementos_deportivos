@@ -47,4 +47,23 @@ class UsuarioRepositorioTest {
         assertThat(pagina.getContent().getFirst().getRol()).isEqualTo(Rol.PRESTADOR);
         assertThat(pagina.getContent().getFirst().getNombres()).isEqualTo("Maria");
     }
+
+    @Test
+    @DisplayName("CU-13 pagina y filtra solo usuarios solicitantes sin distinguir tildes")
+    void filtraSolicitantes() {
+        usuarios.save(new Usuario("2001", "Maria", "Rojas", null, null, Rol.USER, true,
+                Instant.parse("2026-11-18T16:00:00Z")));
+        usuarios.save(new Usuario("2002", "María José", "López", null, null, Rol.USER, true,
+                Instant.parse("2026-11-18T16:00:00Z")));
+        usuarios.save(new Usuario("2003", "Maria", "Admin", "admin@itm.edu.co", "hash", Rol.ADMIN, true,
+                Instant.parse("2026-11-18T16:00:00Z")));
+        usuarios.flush();
+
+        var pagina = usuarios.findAll(
+                UsuarioEspecificaciones.solicitantes("maria"),
+                PageRequest.of(0, 10, Sort.by("identificacion").ascending().and(Sort.by("id").ascending())));
+
+        assertThat(pagina.getTotalElements()).isEqualTo(2);
+        assertThat(pagina.getContent()).extracting(Usuario::getRol).containsOnly(Rol.USER);
+    }
 }

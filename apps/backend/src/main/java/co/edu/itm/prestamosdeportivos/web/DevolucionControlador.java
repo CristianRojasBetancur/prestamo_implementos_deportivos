@@ -11,6 +11,7 @@ import co.edu.itm.prestamosdeportivos.persistencia.DevolucionFiltros;
 import co.edu.itm.prestamosdeportivos.seguridad.UsuarioAutenticado;
 import co.edu.itm.prestamosdeportivos.web.comun.PaginaRespuesta;
 import co.edu.itm.prestamosdeportivos.web.comun.ParametrosPagina;
+import io.swagger.v3.oas.annotations.Operation;
 import co.edu.itm.prestamosdeportivos.web.dto.DevolucionDto.DevolucionRespuesta;
 import co.edu.itm.prestamosdeportivos.web.dto.DevolucionDto.DevolucionResumenRespuesta;
 import co.edu.itm.prestamosdeportivos.web.dto.DevolucionDto.RegistrarDevolucionSolicitud;
@@ -48,6 +49,7 @@ public class DevolucionControlador {
     }
 
     @GetMapping("/devoluciones")
+    @Operation(summary = "Consultar devoluciones", description = "Lista devoluciones con sus relaciones de préstamo, usuario, unidad, fecha y condición.")
     public PaginaRespuesta<DevolucionResumenRespuesta> listar(
             @RequestParam(required = false) UUID prestamoId,
             @RequestParam(required = false) UUID usuarioId,
@@ -63,6 +65,7 @@ public class DevolucionControlador {
     }
 
     @GetMapping("/devoluciones/{id}")
+    @Operation(summary = "Consultar detalle de devolución", description = "Consulta una devolución y su información de sanción sin modificarla.")
     public DevolucionRespuesta consultar(@PathVariable UUID id) {
         return servicio.consultar(id);
     }

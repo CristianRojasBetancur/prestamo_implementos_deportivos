@@ -155,6 +155,10 @@ Respuesta paginada:
 
 Un valor fuera de rango o un campo de orden no permitido produce `400`.
 
+El orden de todos los listados es estable: cuando el campo solicitado empata,
+el servidor agrega `id,asc` como desempate. Las respuestas no incluyen enlaces
+HATEOAS; la navegación se realiza con los identificadores y rutas del catálogo.
+
 ### 4.6 Filtros y búsqueda
 
 - `q`: búsqueda de texto libre, sin distinguir mayúsculas ni tildes, sobre los
@@ -474,6 +478,10 @@ los casos protegidos y no se repiten.
 - **Regla:** esta consulta **no falla** cuando el usuario está inhabilitado:
   responde `200` con `habilitado: false` y la lista de `motivos`.
 
+La búsqueda usa `GET /api/v1/usuarios` y la consulta informativa usa
+`GET /api/v1/usuarios/{id}/situacion`. Ambas son de solo lectura y comparten la
+fuente de elegibilidad que se vuelve a ejecutar al registrar el préstamo.
+
 ### CU-14 Registrar préstamo
 - **Actor:** Prestador. **Traza:** RU-09, RU-12, HU-09, HU-12, RF-11, RF-12,
   RF-13, RN-01, RN-02, RN-04, RN-05, RN-06. **Patrones:** Facade
@@ -507,6 +515,9 @@ los casos protegidos y no se repiten.
   coma), `usuarioId`, `desde` y `hasta` sobre `fechaPrestamo`. Hay además un
   detalle por ID con sus unidades, devoluciones e incidencias.
 - **Orden por defecto:** `fechaPrestamo,desc`.
+
+Los valores de `estado` se envían como una lista separada por comas, por
+ejemplo `estado=VIGENTE,VENCIDO`.
 
 ### CU-16 Registrar devolución
 - **Actor:** Prestador. **Traza:** RU-13, RU-16, HU-13, HU-16, RF-15, RF-16,
@@ -627,6 +638,10 @@ El endpoint 19 existe porque el prestador necesita seleccionar **unidades
 físicas** con su UUID al registrar el préstamo (paso 2 del asistente de FE-01).
 La consulta pública (3) agrupa las unidades y no expone identificadores. El
 endpoint 19 admite `q` y `categoriaId`.
+
+Los endpoints canónicos de consulta se publican únicamente con los nombres en
+español definidos en esta sección. No se publican aliases `/loans` ni
+`/users/{id}/loan-situation`.
 
 ## 10. Contratos y ejemplos
 
@@ -1221,7 +1236,13 @@ Se verifican cuando se implemente el backend contra esta especificación:
 12. La tarea de vencimiento marca `VENCIDO` a los préstamos con plazo superado y
     unidades pendientes, y es idempotente.
 13. Todos los errores siguen el formato de §4.8 con un `codigo` del catálogo.
-14. Los listados respetan la paginación (máximo 100) y los filtros declarados.
+14. Los listados respetan la paginación (máximo 100), los filtros declarados y
+    el desempate estable por `id`.
+15. Las consultas de préstamos, devoluciones, incidencias, usuarios y situación
+    no mutan datos ni calculan sanciones; cada ruta tiene una autorización
+    explícita y prueba de acceso.
+16. La matriz de trazabilidad no crea `RF-19`: la consulta de devoluciones se
+    mantiene trazada a `HU-14`/`RU-14` mediante `CU-17`.
 
 ## 17. Estrategia de pruebas
 

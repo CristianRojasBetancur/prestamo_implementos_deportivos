@@ -69,7 +69,7 @@ class PrestamoConsultaIntegracionTest {
                     .executeUpdate();
             entityManager.clear();
         });
-        mvc.perform(get("/api/v1/loans")
+        mvc.perform(get("/api/v1/prestamos")
                 .param("estado", "VENCIDO")
                 .param("identificacion", vencido.usuario().getIdentificacion())
                 .param("pagina", "0")
@@ -81,6 +81,41 @@ class PrestamoConsultaIntegracionTest {
                 .andExpect(jsonPath("$.contenido[0].vencido").value(true))
                 .andExpect(jsonPath("$.pagina").value(0))
                 .andExpect(jsonPath("$.tamano").value(1));
+        mvc.perform(get("/api/v1/prestamos")
+                .param("estado", "VIGENTE")
+                .param("identificacion", vencido.usuario().getIdentificacion())
+                .with(authentication(autenticacion(vencido.operador()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contenido.length()").value(0))
+                .andExpect(jsonPath("$.totalElementos").value(0));
+    }
+
+    @Test
+    @DisplayName("BE-11: la lista acepta varios estados en una sola consulta")
+    void listaAceptaVariosEstados() throws Exception {
+        var vencido = fixture(1);
+        var vigente = fixture(1);
+        var respuestaVencido = registro.registrar(vencido.usuario().getId(),
+                List.of(vencido.unidades().getFirst().getId()), vencido.operador());
+        registro.registrar(vigente.usuario().getId(), List.of(vigente.unidades().getFirst().getId()), vigente.operador());
+        Instant ahora = Instant.now();
+        transacciones.executeWithoutResult(status -> {
+            entityManager.createNativeQuery("update prestamo set fecha_prestamo = :inicio, "
+                    + "fecha_limite_devolucion = :limite where id = :id")
+                    .setParameter("inicio", ahora.minusSeconds(48 * 3600))
+                    .setParameter("limite", ahora.minusSeconds(3600))
+                    .setParameter("id", respuestaVencido.id())
+                    .executeUpdate();
+            entityManager.clear();
+        });
+
+        mvc.perform(get("/api/v1/prestamos")
+                .param("estado", "VIGENTE,VENCIDO")
+                .param("tamano", "20")
+                .with(authentication(autenticacion(vencido.operador()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contenido.length()").value(2))
+                .andExpect(jsonPath("$.totalElementos").value(2));
     }
 
     @Test
@@ -90,7 +125,7 @@ class PrestamoConsultaIntegracionTest {
         var creado = registro.registrar(fixture.usuario().getId(),
                 fixture.unidades().stream().map(u -> u.getId()).toList(), fixture.operador());
         var antes = prestamos.findById(creado.id()).orElseThrow();
-        mvc.perform(get("/api/v1/loans/" + creado.id()).with(authentication(autenticacion(fixture.operador()))))
+        mvc.perform(get("/api/v1/prestamos/" + creado.id()).with(authentication(autenticacion(fixture.operador()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(creado.id().toString()))
                 .andExpect(jsonPath("$.estado").value("VIGENTE"))
@@ -116,11 +151,43 @@ class PrestamoConsultaIntegracionTest {
     }
 
     @Test
+    @DisplayName("BE-11: lista solicitantes con búsqueda, orden y metadatos de paginación")
+    void listaSolicitantesPaginada() throws Exception {
+        var fixture = fixture(1);
+        usuarios.saveAndFlush(Usuario.solicitante("u" + UUID.randomUUID().toString().replace("-", "").substring(0, 12),
+                "Usuario", "Segundo"));
+
+        mvc.perform(get("/api/v1/usuarios")
+                .param("q", "usuario")
+                .param("pagina", "0")
+                .param("tamano", "1")
+                .param("orden", "identificacion,asc")
+                .with(authentication(autenticacion(fixture.operador()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contenido.length()").value(1))
+                .andExpect(jsonPath("$.contenido[0].nombres").value("Usuario"))
+                .andExpect(jsonPath("$.pagina").value(0))
+                .andExpect(jsonPath("$.tamano").value(1))
+                .andExpect(jsonPath("$.totalElementos").value(2));
+    }
+
+    @Test
+    @DisplayName("BE-11: los aliases ingleses no crean endpoints duplicados")
+    void aliasesInglesesNoExpuestos() throws Exception {
+        var fixture = fixture(1);
+        mvc.perform(get("/api/v1/loans").with(authentication(autenticacion(fixture.operador()))))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/users/" + fixture.usuario().getId() + "/loan-situation")
+                .with(authentication(autenticacion(fixture.operador()))))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     @DisplayName("BE-11: los endpoints de consulta exigen PRESTADOR")
     void autorizacion() throws Exception {
         var id = UUID.randomUUID();
         mvc.perform(get("/api/v1/prestamos")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/api/v1/loans/" + id).with(user("admin").roles("ADMIN")))
+        mvc.perform(get("/api/v1/prestamos/" + id).with(user("admin").roles("ADMIN")))
                 .andExpect(status().isForbidden());
     }
 

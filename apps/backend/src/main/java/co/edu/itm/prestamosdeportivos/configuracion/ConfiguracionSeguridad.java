@@ -81,9 +81,7 @@ public class ConfiguracionSeguridad {
 
                         // Operación: solo PRESTADOR.
                         .requestMatchers("/api/v1/usuarios", "/api/v1/usuarios/**").hasRole(PRESTADOR)
-                        .requestMatchers("/api/v1/users/*/loan-situation").hasRole(PRESTADOR)
                         .requestMatchers("/api/v1/prestamos", "/api/v1/prestamos/**").hasRole(PRESTADOR)
-                        .requestMatchers("/api/v1/loans", "/api/v1/loans/**").hasRole(PRESTADOR)
                         .requestMatchers("/api/v1/devoluciones", "/api/v1/devoluciones/**").hasRole(PRESTADOR)
                         .requestMatchers(HttpMethod.GET, "/api/v1/incidencias", "/api/v1/incidencias/**")
                                 .hasAnyRole(ADMIN, PRESTADOR)

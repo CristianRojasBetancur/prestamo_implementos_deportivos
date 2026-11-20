@@ -42,6 +42,21 @@ public final class UsuarioEspecificaciones {
         };
     }
 
+    public static Specification<Usuario> solicitantes(String q) {
+        return (root, query, cb) -> {
+            List<Predicate> predicados = new ArrayList<>();
+            predicados.add(cb.equal(root.get("rol"), Rol.USER));
+            if (noVacio(q)) {
+                String patron = "%" + normalizar(q) + "%";
+                predicados.add(cb.or(
+                        contiene(root.get("nombres"), patron, cb),
+                        contiene(root.get("apellidos"), patron, cb),
+                        contiene(root.get("identificacion"), patron, cb)));
+            }
+            return cb.and(predicados.toArray(Predicate[]::new));
+        };
+    }
+
     private static void agregarContiene(List<Predicate> predicados, Expression<String> campo,
             String valor, jakarta.persistence.criteria.CriteriaBuilder cb) {
         if (noVacio(valor)) {
