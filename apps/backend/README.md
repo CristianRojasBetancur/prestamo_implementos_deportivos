@@ -12,8 +12,8 @@ API REST del MVP, gobernada por la especificación
 | Base de datos | PostgreSQL 17 (Docker Compose en local, Testcontainers en pruebas) |
 | Build | Maven 3.9+ |
 
-> Estado: base técnica inicializada. Incluye autenticación JWT, gestión de
-> prestadores, elegibilidad, registro transaccional y consulta de préstamos.
+> Estado: backend funcional con autenticación JWT, gestión de prestadores,
+> inventario, elegibilidad, préstamos, devoluciones, incidencias y sanciones.
 
 ## Requisitos
 
@@ -66,13 +66,26 @@ Todos los comandos se ejecutan desde `apps/backend/`.
 ## Pruebas
 
 ```bash
-mvn test
+mvn clean test
 ```
 
 Las pruebas usan el perfil `test` y levantan un PostgreSQL efímero con
 Testcontainers (requiere Docker en ejecución, no requiere el `compose.yaml`).
-Cubren el arranque, migraciones, healthcheck, CORS, seguridad y gestión de
-prestadores (controller, servicio, repositorio y autorización).
+`mvn test` ejecuta la misma suite unitaria y de integración; `mvn clean test`
+se recomienda para verificar un entorno recién clonado.
+No leen ni escriben la base local: cada suite crea su contenedor, Flyway aplica
+las migraciones y FlujoCompletoApiIntegracionTest crea un escenario aislado
+con credenciales exclusivas de prueba. La suite cubre el flujo HTTP completo y
+errores de autenticación, autorización, duplicados, disponibilidad, elegibilidad,
+unidad ajena, operación repetida, devolución parcial/final, incidencia,
+sanción y cierre.
+
+Para ejecutar solo el flujo E2E:
+
+    mvn -Dtest=FlujoCompletoApiIntegracionTest test
+
+La matriz de escenarios, HU/RN/RNF cubiertas y la revisión de flakiness están
+documentadas en TEST-TRACEABILITY.md.
 
 ## Detener
 
@@ -88,7 +101,7 @@ docker compose down -v     # elimina también el volumen (base vacía la próxim
 | Perfil | Uso | Base de datos |
 |---|---|---|
 | `local` (por defecto) | Desarrollo con `mvn spring-boot:run` | PostgreSQL de `compose.yaml`, credenciales de `.env` |
-| `test` | `mvn test` | Testcontainers (`postgres:17-alpine`) |
+| `test` | `mvn clean test` | Testcontainers (`postgres:17-alpine`), sin datos ficticios en local/prod |
 | `prod` | Despliegue (`SPRING_PROFILES_ACTIVE=prod`) | `DB_URL`, sin valores por defecto |
 
 | Variable | Perfil | Obligatoria | Descripción |
@@ -173,7 +186,7 @@ antes de llamar las rutas protegidas. El token se guarda automáticamente en
   `V2__crear_tabla_usuario.sql`).
 - Una migración aplicada nunca se edita; cualquier cambio se hace con una
   migración nueva. Hibernate solo valida el esquema (`ddl-auto: validate`).
-- Aplicadas: `V1__linea_base.sql`, `V2__crear_esquema_mvp.sql`, `V3__historial_estado_implemento.sql`, `V4__indices_consulta_disponibilidad.sql`, `V5__evento_historial_prestamo.sql` y `V6__habilitar_unaccent.sql`.
+- Aplicadas: V1__linea_base.sql a V9__operador_historial_estado_implemento.sql.
 - Reversión: forward-only. En local, `docker compose down -v` recrea la base
   vacía; en entornos compartidos se usa una migración correctiva. Detalle en
   `docs/agent-context/modelo-datos.md` §6.

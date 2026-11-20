@@ -10,7 +10,8 @@ Ejecutar desde `apps/backend/` (detalle en `README.md`):
 
 - `docker compose up -d`: PostgreSQL 17 local con volumen `postgres-datos` y healthcheck. Requiere `.env` (copia de `.env.example`).
 - `mvn spring-boot:run`: API en `http://localhost:8080` con el perfil `local`; aplica migraciones Flyway al arrancar.
-- `mvn test`: pruebas con el perfil `test` y PostgreSQL efímero de Testcontainers (requiere Docker).
+- `mvn clean test`: unitarias e integración con el perfil `test` y PostgreSQL efímero de Testcontainers (requiere Docker).
+- `mvn -Dtest=FlujoCompletoApiIntegracionTest test`: flujo E2E HTTP completo.
 - `docker compose down` / `docker compose down -v`: detener la base (con `-v` se borran los datos).
 
 ## Estructura y configuración
@@ -62,3 +63,6 @@ Ejecutar desde `apps/backend/` (detalle en `README.md`):
 
 No introducir un patrón solo por cumplir una lista. Consultar `docs/agent-context/patrones-solid.md` antes de extender el diseño.
 
+- Los fixtures reproducibles viven exclusivamente en `src/test/java/.../soporte`; usan correos
+  `pruebas.invalid`, contraseñas generadas por escenario y un reloj mutable de prueba.
+  Nunca deben trasladarse a `src/main` ni a perfiles `local`/`prod`.
