@@ -59,6 +59,16 @@ public class InventarioServicio {
         return implementos.findAll(InventarioEspecificaciones.filtros(q, categoriaId, estado), determinista(pageable));
     }
 
+    /**
+     * CU-14: unidades físicas que el prestador puede seleccionar para un
+     * préstamo. El estado no lo controla el cliente: siempre se fuerza a
+     * DISPONIBLE en la capa de aplicación.
+     */
+    @Transactional(readOnly = true)
+    public Page<ImplementoDeportivo> listarPrestables(String q, UUID categoriaId, Pageable pageable) {
+        return listar(q, categoriaId, EstadoImplemento.DISPONIBLE, pageable);
+    }
+
     @Transactional(readOnly = true)
     public ImplementoDeportivo obtener(UUID id) {
         return implementos.findById(id).orElseThrow(() -> new ExcepcionDominio(CodigoError.RECURSO_NO_ENCONTRADO));

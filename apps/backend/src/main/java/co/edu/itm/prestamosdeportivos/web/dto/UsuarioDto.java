@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import co.edu.itm.prestamosdeportivos.dominio.error.CodigoError;
 import co.edu.itm.prestamosdeportivos.web.dto.Referencias.ReferenciaUsuario;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 /** CU-13: búsqueda de solicitantes y situación de préstamo (BE-01 §10.5). */
 public final class UsuarioDto {
@@ -15,6 +17,15 @@ public final class UsuarioDto {
 
     public record SolicitanteRespuesta(UUID id, String nombres, String apellidos, String identificacion,
             boolean activo) {
+    }
+
+    public record CrearSolicitanteSolicitud(
+            @NotBlank(message = "es obligatorio") @Size(max = 40, message = "no puede superar 40 caracteres")
+            String identificacion,
+            @NotBlank(message = "es obligatorio") @Size(max = 120, message = "no puede superar 120 caracteres")
+            String nombres,
+            @NotBlank(message = "es obligatorio") @Size(max = 120, message = "no puede superar 120 caracteres")
+            String apellidos) {
     }
 
     public record MotivoInhabilitacion(CodigoError codigo, String mensaje) {

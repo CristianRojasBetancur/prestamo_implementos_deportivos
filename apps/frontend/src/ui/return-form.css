@@ -1,0 +1,57 @@
+.return-form-panel .return-selection {
+  display: flex;
+  align-items: center;
+}
+
+.return-form-panel .return-selection input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.return-form-panel .return-item.disabled {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+  opacity: .65;
+}
+
+.return-form-panel .return-item.disabled .return-item-info strong {
+  color: #64748b;
+}
+
+.return-form-panel .return-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.return-form-panel .return-item textarea {
+  min-width: 220px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font: inherit;
+  resize: vertical;
+}
+
+.return-form-panel .return-item textarea:disabled,
+.return-form-panel .return-item select:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .return-form-panel .return-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+  }
+
+  .return-form-panel .return-item .select-wrap,
+  .return-form-panel .return-item textarea {
+    grid-column: 2;
+    width: 100%;
+    min-width: 0;
+  }
+}

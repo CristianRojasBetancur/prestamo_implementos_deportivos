@@ -43,7 +43,9 @@ explícita.
 - Analítica avanzada, reportes complejos y recomendaciones.
 - Autoservicio de cuentas: registro público, recuperación o cambio de contraseña
   (ver `PEND-02`).
-- Endpoints para crear o editar usuarios solicitantes (ver `PEND-01`).
+- Edición, recuperación o sincronización masiva de usuarios solicitantes. El alta
+  operativa mínima durante la preparación de un préstamo está especificada en
+  `BE-19`.
 
 ## 3. Actores, roles y permisos
 
@@ -72,6 +74,7 @@ Un prestador **no** es una entidad distinta: es un `Usuario` con rol
 | Gestionar prestadores | — | — | ✔ |
 | Gestionar inventario (implementos) | — | — | ✔ |
 | Buscar solicitantes y consultar su situación | — | ✔ | — |
+| Registrar solicitantes como `USER` | — | ✔ | — |
 | Registrar y consultar préstamos | — | ✔ | — |
 | Registrar y consultar devoluciones | — | ✔ | — |
 | Registrar incidencias | — | ✔ | — |
@@ -621,17 +624,18 @@ ejemplo `estado=VIGENTE,VENCIDO`.
 | 16 | `PATCH /api/v1/implementos/{id}/estado` | `ADMIN` | CU-11 | `200` |
 | 17 | `GET /api/v1/usuarios` | `PRESTADOR` | CU-13 | `200` paginado (solo rol `USER`) |
 | 18 | `GET /api/v1/usuarios/{id}/situacion` | `PRESTADOR` | CU-13 | `200` |
-| 19 | `GET /api/v1/implementos/prestables` | `PRESTADOR` | CU-14 | `200` paginado (unidades `DISPONIBLE`) |
-| 20 | `POST /api/v1/prestamos` | `PRESTADOR` | CU-14 | `201` |
-| 21 | `GET /api/v1/prestamos` | `PRESTADOR` | CU-15 | `200` paginado |
-| 22 | `GET /api/v1/prestamos/{id}` | `PRESTADOR` | CU-15 | `200` |
-| 23 | `POST /api/v1/prestamos/{id}/devoluciones` | `PRESTADOR` | CU-16 | `201` |
-| 24 | `GET /api/v1/devoluciones` | `PRESTADOR` | CU-17 | `200` paginado |
-| 25 | `GET /api/v1/devoluciones/{id}` | `PRESTADOR` | CU-17 | `200` |
-| 26 | `POST /api/v1/prestamos/{id}/incidencias` | `PRESTADOR` | CU-18 | `201` |
-| 27 | `GET /api/v1/incidencias` | `PRESTADOR`, `ADMIN` | CU-19 | `200` paginado |
-| 28 | `GET /api/v1/incidencias/{id}` | `PRESTADOR`, `ADMIN` | CU-19 | `200` |
-| 29 | `PATCH /api/v1/incidencias/{id}/resolucion` | `ADMIN` | CU-18A | `200` |
+| 19 | `POST /api/v1/usuarios` | `PRESTADOR` | BE-19 | `201` |
+| 20 | `GET /api/v1/implementos/prestables` | `PRESTADOR` | CU-14 | `200` paginado (unidades `DISPONIBLE`) |
+| 21 | `POST /api/v1/prestamos` | `PRESTADOR` | CU-14 | `201` |
+| 22 | `GET /api/v1/prestamos` | `PRESTADOR` | CU-15 | `200` paginado |
+| 23 | `GET /api/v1/prestamos/{id}` | `PRESTADOR` | CU-15 | `200` |
+| 24 | `POST /api/v1/prestamos/{id}/devoluciones` | `PRESTADOR` | CU-16 | `201` |
+| 25 | `GET /api/v1/devoluciones` | `PRESTADOR` | CU-17 | `200` paginado |
+| 26 | `GET /api/v1/devoluciones/{id}` | `PRESTADOR` | CU-17 | `200` |
+| 27 | `POST /api/v1/prestamos/{id}/incidencias` | `PRESTADOR` | CU-18 | `201` |
+| 28 | `GET /api/v1/incidencias` | `PRESTADOR`, `ADMIN` | CU-19 | `200` paginado |
+| 29 | `GET /api/v1/incidencias/{id}` | `PRESTADOR`, `ADMIN` | CU-19 | `200` |
+| 30 | `PATCH /api/v1/incidencias/{id}/resolucion` | `ADMIN` | CU-18A | `200` |
 | — | `GET /actuator/health` | Público (solo estado) | RNF-02 | `200`/`503` |
 
 El endpoint 19 existe porque el prestador necesita seleccionar **unidades
@@ -1058,7 +1062,8 @@ automáticamente el estado de la unidad.
     `APP_ADMIN_CORREO` y `APP_ADMIN_CONTRASENA`;
   - las categorías base son las del prototipo: Balones, Raquetas,
     Entrenamiento y Accesorios;
-  - los usuarios `USER` se cargan según `PEND-01`.
+  - los usuarios `USER` pueden cargarse por migración o mediante el alta
+    operativa de `BE-19`; no se incorpora sincronización académica.
 
 ## 12. Diseño interno esperado (patrones y SOLID)
 
@@ -1174,7 +1179,7 @@ SOLID del Entregable 2.
 
 | ID | Tema | Propuesta provisional |
 |---|---|---|
-| `PEND-01` | Ningún RF cubre cómo se dan de alta los usuarios `USER` (solicitantes), y la sincronización con sistemas académicos está fuera de alcance. | En el MVP se cargan con una migración o un script de datos semilla. Si el equipo decide que el prestador pueda registrarlos, se necesita una especificación nueva. |
+| `PEND-01` | La sincronización con sistemas académicos y la edición posterior de usuarios `USER` siguen fuera de alcance. | El alta mínima de un solicitante para preparar un préstamo está cubierta por `BE-19`; los datos iniciales también pueden cargarse mediante migración o script semilla. |
 | `PEND-02` | Cambio o recuperación de contraseña. | Fuera del MVP. Mientras tanto, el administrador puede desactivar y volver a crear la cuenta. |
 | `PEND-03` | Bloqueo por intentos fallidos de login. | Recomendado. Se especificará si el equipo lo incluye. |
 | `PEND-04` | Ciclo de la incidencia (`REGISTRADA → RESUELTA`). FE-01 muestra "Resuelta", pero ningún RF define la resolución. | En el MVP solo se crea `REGISTRADA`. El destino final de la unidad se gestiona con CU-11 (de `EN_MANTENIMIENTO` a `DISPONIBLE` o `DADO_DE_BAJA`). |

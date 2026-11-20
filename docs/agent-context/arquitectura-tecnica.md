@@ -18,11 +18,10 @@ La aplicación web se comunica con la API mediante HTTP/JSON sobre HTTPS. La web
 
 ## Estado de inicialización
 
-`apps/frontend/` está inicializado con React, Vite y TypeScript. El alcance de
-interfaz implementado inicialmente está descrito en
-`docs/specs/FE-01-frontend-mvp.md`. El cliente HTTP centraliza la URL base y los
-errores; mientras no consuma la API, las pantallas presentan estados vacíos y
-no confirman operaciones.
+`apps/frontend/` está inicializado con React, Vite y TypeScript. FE-01 describe
+la interfaz MVP y FE-02 gobierna su integración con la API. El cliente HTTP y
+los adaptadores tipados centralizan URL base, sesión, correlación y errores; las
+vistas no contienen fixtures ni confirman operaciones sin respuesta exitosa.
 
 `apps/backend/` está inicializado como aplicación Spring Boot 4.1 (Java 21,
 Maven) según `docs/specs/BE-01-api-backend-mvp.md`, que es el contrato de la
@@ -42,6 +41,8 @@ comandos están en `apps/backend/README.md`.
 - `AutenticacionUI`: inicio/cierre de sesión y estado autenticado.
 - `CatalogoDisponibilidadUI`: consulta y filtrado de disponibilidad.
 - `GestionPrestadoresUI`: administración de prestadores.
+- `AltaSolicitantesUI`: registro operativo de solicitantes desde el asistente de
+  préstamos, usando únicamente el contrato BE-19.
 - `GestionInventarioUI`: administración de categorías, unidades y estados.
 - `OperacionPrestamosUI`: consulta de situación, validación previa y registro.
 - `OperacionDevolucionesUI`: devoluciones, condiciones, incidencias e historial.
@@ -52,6 +53,7 @@ comandos están en `apps/backend/README.md`.
 
 - `AutenticacionAutorizacion`.
 - `GestionPrestadores`.
+- `GestionSolicitantes`.
 - `GestionInventario`.
 - `GestionPrestamos`.
 - `GestionDevoluciones`.

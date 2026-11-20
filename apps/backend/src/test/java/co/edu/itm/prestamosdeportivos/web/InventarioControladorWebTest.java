@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import java.util.UUID;
 
@@ -62,6 +63,15 @@ class InventarioControladorWebTest {
                 .andExpect(jsonPath("$.estado").value("DISPONIBLE"))
                 .andExpect(jsonPath("$.prestable").value(true))
                 .andExpect(jsonPath("$.creadoEn").exists());
+
+        mvc.perform(get("/api/v1/implementos/prestables").param("q", codigo).param("tamano", "10")
+                        .with(user("prestador").roles("PRESTADOR")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contenido[0].codigoInventario").value(codigo))
+                .andExpect(jsonPath("$.contenido[0].estado").value("DISPONIBLE"))
+                .andExpect(jsonPath("$.contenido[0].fechaRegistro").exists());
+        mvc.perform(get("/api/v1/inventory/units").with(user("prestador").roles("PRESTADOR")))
+                .andExpect(status().isForbidden());
 
         MvcResult creada = mvc.perform(post("/api/v1/inventory/units").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"codigoInventario\":\"" + codigo + "\",\"nombre\":\"Duplicado\","
